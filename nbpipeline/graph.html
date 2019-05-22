@@ -1,0 +1,461 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>The pipeline</title>
+
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+        <script src="https://dagrejs.github.io/project/dagre-d3/latest/dagre-d3.js"></script>
+        <!--<script src="dagre-d3-modified.js"></script>-->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<style id="css">
+html {
+    height: 100%;
+}
+
+body {
+    width: 90%;
+    height: 90%;
+  margin: 0 auto;
+  color: #333;
+  font-weight: 300;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+
+.clusters rect {
+  fill: #00ffd0;
+  stroke: #999;
+  stroke-width: 1.5px;
+}
+
+text {
+  font-weight: 300;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+}
+
+.node rect {
+  stroke: #999;
+  fill: #fff;
+  stroke-width: 1.5px;
+}
+
+.edgePath path {
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+    
+    .data_path {
+        color: #ccc;
+        width: 16px;
+    }
+    .path_element {
+        cursor: default;
+        display: inline-block;
+        vertical-align: middle;
+        border: 1px solid #e6e5e5;
+        padding: 2px 3px;
+        border-radius: 4px;
+    }
+    .path_element:hover {
+        border-color: black
+    }
+    .path_element:not(:last-child) {
+        max-width: 100px;
+        overflow: hidden;
+        position: relative;
+        transition: all 1s ease;
+    }
+    .path_element:not(:last-child):after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: linear-gradient(to right, transparent 80px, white 105px);
+        width: 120%;
+        height: 100%;
+        transition: all 1s ease;
+    }
+    .path_element:not(:last-child):hover:after {
+        left: 1000px
+    }
+    .path_element:not(:last-child):hover {
+        max-width: 1000px
+    }
+    
+    .path {
+        vertical-align: bottom
+    }
+    
+    .path_element * {
+        transition: all 1s ease;
+    }
+    
+    .path_element.collapsed {
+        position: relative;
+        max-width: 20px
+    }
+    .path_element:hover.collapsed {
+        max-width: 1000px
+    }
+    .path_element.collapsed .replacement{
+        opacity: 1;
+        width: 20px;
+        position: absolute;
+        left: 6px; top: 0
+    }
+    .path_element:hover.collapsed .replacement{
+        opacity: 0;
+    }
+    .path_element.collapsed .hidden_label{
+        opacity: 0;
+    }
+    .path_element:hover.collapsed .hidden_label{
+        opacity: 1;
+    }
+
+    .stats {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    .stats li {
+        display: inline-block;
+        padding: 5px 10px;
+        /*border: 1px solid #ccc;
+        border-radius: 3px;*/
+        margin: 5px
+    }
+    #main_chart {
+        width: 100%;
+        height: 90%;
+        border: 1px solid #ccc;
+        overflow: hidden;
+        margin: 0 auto;
+    }
+    
+    #diff_modal .modal-dialog {
+        max-width: 800px
+    }
+    
+    .notebook_images_thumbnails {
+        margin: 0;
+        padding: 0;
+        height: 50px
+    }
+    
+    .thumbnail-img {
+        max-width: 46px;
+        max-height: 46px;
+    }
+    .thumbnail {
+        display: block;
+        float: left;
+        margin: 0 3px;
+        border: 2px solid #ccc;
+        height:50px
+    }
+    .thumbnail:hover {
+        border-color: black
+    }
+    .popover_img {
+        max-width: 400px
+    }
+    .popover {
+        max-width: 450px
+    }
+    .outline {
+        clear: both;
+    }
+    .outline ul ul ul {
+        max-height: 10px;
+        overflow-y: hidden;
+        transition: all 1s ease
+    }
+    
+    .outline ul ul li:hover ul {
+        max-height: 1000px;
+    }
+    .outline ul ul li:hover ul:after {
+        top: 1000px;
+    }
+    
+    .outline ul li:nth-child(1n+4) {
+        opacity: 0;
+        height: 0
+    }
+    
+    .outline ul li:nth-child(3)::after {
+        content: '(and more)'
+    }
+    
+    .outline ul:hover li:nth-child(1n+4) {
+        opacity: 1;
+        height: initial
+    }
+    
+    .outline ul ul {
+        position: relative
+    }
+    .outline ul ul ul:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: linear-gradient(transparent 4px, white 12px);
+        width: 100%;
+        height: 110%;
+        transition: all 1s ease;
+    }
+    
+    .errored {
+        background-color: red
+    }
+    
+    .fidelity-0, .fidelity-1, .fidelity-2, .fidelity-3, .fidelity-4, .fidelity-5, .fidelity-6, .fidelity-7  {
+        /* TODO a */
+        color: red!important
+    }
+    
+    .fidelity-8 {
+        color: orange!important
+    }
+
+    .fidelity-10 {
+        color: green!important
+    }
+    
+    .edgePath:hover path {
+        stroke: red;
+        fill: red;
+    }
+        </style>
+    </head>
+    <body>
+
+        <h1>Workflow visualisation</h1>
+        <svg id="main_chart"></svg>
+        
+        <div class="modal fade" id="diff_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="diff_modal_label">Diff</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                ...
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <!---<button type="button" class="btn btn-primary">Save changes</button>--->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+    </body>
+
+<script>
+var g = new dagreD3.graphlib.Graph({compound:true})
+  .setGraph({
+      //rankdir: 'LR',
+      ranker: 'longest-path', // longest-path also works finetop
+  })
+  .setDefaultEdgeLabel(function() { return {}; });
+
+data = {{ json }};
+repo = {{ repo_url }};
+
+for(var node of data.nodes) {
+    g.setNode(node.name, node);
+}
+
+for(var edge of data.edges) {
+    g.setEdge(edge.from, edge.to);
+}
+    
+for(var cluster of data.clusters) {
+    g.setNode(cluster.name, {label: cluster.name, clusterLabelPos: 'top', style: 'fill: ' + cluster.color});
+    for(var member_name of cluster.members) {
+        g.setParent(member_name, cluster.name); 
+    }
+    
+}
+
+//g.setParent('Proteomics analyses', 'Proteomics');
+
+function show_diff(node_name) {
+    var node = g.node(node_name);
+    $('#diff_modal_label').html('Reproducibility report for ' + node_name)
+    $('#diff_modal .modal-body').html(node.text_diff);
+    $('#diff_modal').modal('toggle');
+}
+
+function format_outline(headers) {
+    var out = '<ul>';
+    var last_level = 2;
+    
+    for (header of headers) {
+                console.log(header)
+
+        var chunks = header.trim().split(' ') 
+        var level = chunks[0].length
+        header = chunks.slice(1).join(' ')
+        
+        // ignore titles
+        if(level == 1) {
+            continue
+        }
+        if (level > last_level) {
+            out += '<ul>'.repeat(level-last_level)
+        }
+        else if (level < last_level) {
+            out += '</ul>'.repeat(last_level - level);
+        }
+        last_level = level
+
+        out += '<li>' + header
+    }
+    if(last_level != 1) {
+        out += '</ul>'
+    }
+    return out
+}
+    
+function html_alert(text, kind) {
+    return (
+        '<div class="alert alert-'+ kind + '" role="alert">'
+        + text 
+        + '</div>'
+    )
+}    
+g.nodes().forEach(function(v) {
+    var node = g.node(v);
+    node.rx = node.ry = 5;
+    if(node.type == 'notebook'){
+        var buttons = [];
+        if (node.diff) {
+            buttons.push()
+        }
+        images = ''
+        if (node.images.length)
+        {
+         
+            images += '<div class="notebook_images_thumbnails">'
+            for(var img of node.images) {
+                images += '<div class="thumbnail"><img class="thumbnail-img" src="data:image/png;base64,' + img + '"></div>'
+            }
+            images += '</div>'
+           
+        }
+        state = ''
+        if(node.status != 0) {
+            if(node.status === null) {
+                //state = html_alert('This notebook has not been executed', 'warning')
+            } else {
+                state = html_alert('Execution of this notebook has errored', 'danger')
+            }
+        }
+        node.label = (
+            state
+            + "<div><h4>" + node.name + '</h4><i class="fab fa-github"></i> <a href="' + repo + '/blob/master/' + node.notebook + '">' + node.notebook_name + "</a></div>"
+            + '<ul class="stats">'
+            + '<li><i class="fas fa-hourglass-end"></i> ' + node.nice_time
+            + '<li>' + '<a href="javascript:show_diff(\'' + node.name + '\')" class="fidelity-' + (node.fidelity / 10).toFixed(0) + '">' + (node.fidelity ? parseFloat(node.fidelity.toFixed(2)) : '?') + '% reproducible</a>'
+            + '<li><i class="fab fa-git-alt"></i> ' + '<a href="' + repo + '/commits/master/' + node.notebook + '" title="Changes this month">' + node.changes_this_month + ' recent changes</a>'
+            + '</ul>'
+            + images
+            + '<div class="outline">' + format_outline(node.headers) + '</div>'
+            + (node.todos.length ? html_alert(node.todos.length + ' TODOs found', 'warning') : '') 
+        )
+        node.labelType = 'html'
+    }
+    if(node.type == 'io') {
+        label = node.name
+
+        labels = label.split('/')
+        path = []
+        for(var i = 0; i < labels.length; i++){
+            label = labels[i]
+            label_title = label
+            if(i == 0 && label == 'data') {
+                label = '<i class="fas fa-database data_path"></i>'
+            }
+            
+            collapsed = (labels.length > 4 && i > 1 && i < labels.length - 2) ? 'collapsed' : ''
+
+            path.push('<span class="path_element ' + collapsed + '">' + (
+                (collapsed ? '<span class="replacement">...</span><span class="hidden_label">' + label + '</span>' : label) 
+            ) + '</span>')
+        }
+        node.label = (
+            '<div class="path">'
+            + path.join(' / ')
+            + '</div>'
+        )
+        node.labelType = 'html'
+    }
+});
+
+var render = new dagreD3.render();
+
+var svg = d3.select("svg"),
+    svgGroup = svg.append("g");
+
+(function() {
+    render(d3.select("svg g"), g);
+
+    d3.selectAll('g.node').each(function(name){
+            var node = d3.select(this);
+    });
+    svg_node = svg.node()
+    w = svg_node.getBoundingClientRect().width
+    h = svg_node.getBoundingClientRect().height
+
+    // graph width and height
+    gw = g.graph().width
+    gh = g.graph().height
+    // width and height extent
+    we = gw / 2 * 1.1
+    he = gh / 2 * 1.1
+    extent = [[-we, -he], [we, he]]
+    var zoom = d3.zoom(extent)
+        //.extent(extent)
+        //.translateExtent(extent)
+        //.translateExtent([[0,0], [g.graph().width, g.graph().height]])
+        //.translateExtent([[0,0], [rect.width, rect.height]])
+        .scaleExtent([.1, 10])
+        .on("zoom", function() {
+            svgGroup.attr("transform", d3.event.transform);
+        });
+
+    initial_scale = Math.min(w / g.graph().width, h / g.graph().height)
+
+    svg.call(zoom)
+          .call(zoom.transform, d3.zoomIdentity
+              .scale(initial_scale)
+              .translate(
+                (w - g.graph().width * initial_scale) / 2,
+                (h - g.graph().height * initial_scale) / 2
+                ));
+})()
+    
+$('.thumbnail').popover({
+  html: true,
+  trigger: 'hover',
+  content: function () {
+    return '<img src="'+ this.firstChild.src + '" class="popover_img"/>';
+  }
+});
+</script>
+
+</html>
