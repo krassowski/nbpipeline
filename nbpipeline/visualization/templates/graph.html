@@ -1,8 +1,19 @@
+{% macro css(path) %}
+  {% if True %}
+    <style>
+      {% include path %}
+    </style>
+  {% else %}
+    <link rel="stylesheet" href="{{ path }}">
+  {% endif %}
+
+{% endmacro %}
+
 <!doctype html>
 <html>
     <head>
         <meta charset="utf-8">
-        <title>The pipeline</title>
+        <title>The {{ title }} pipeline</title>
 
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -13,229 +24,8 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
-<style id="css">
-html {
-    height: 100%;
-}
-
-body {
-    width: 90%;
-    height: 90%;
-  margin: 0 auto;
-  color: #333;
-  font-weight: 300;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-}
-
-
-.clusters rect {
-  fill: #00ffd0;
-  stroke: #999;
-  stroke-width: 1.5px;
-}
-
-text {
-  font-weight: 300;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 14px;
-}
-
-.node rect {
-  stroke: #999;
-  fill: #fff;
-  stroke-width: 1.5px;
-}
-
-.edgePath path {
-  stroke: #333;
-  stroke-width: 1.5px;
-}
-    
-    .data_path {
-        color: #ccc;
-        width: 16px;
-    }
-    .path_element {
-        cursor: default;
-        display: inline-block;
-        vertical-align: middle;
-        border: 1px solid #e6e5e5;
-        padding: 2px 3px;
-        border-radius: 4px;
-    }
-    .path_element:hover {
-        border-color: black
-    }
-    .path_element:not(:last-child) {
-        max-width: 100px;
-        overflow: hidden;
-        position: relative;
-        transition: all 1s ease;
-    }
-    .path_element:not(:last-child):after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        background: linear-gradient(to right, transparent 80px, white 105px);
-        width: 120%;
-        height: 100%;
-        transition: all 1s ease;
-    }
-    .path_element:not(:last-child):hover:after {
-        left: 1000px
-    }
-    .path_element:not(:last-child):hover {
-        max-width: 1000px
-    }
-    
-    .path {
-        vertical-align: bottom
-    }
-    
-    .path_element * {
-        transition: all 1s ease;
-    }
-    
-    .path_element.collapsed {
-        position: relative;
-        max-width: 20px
-    }
-    .path_element:hover.collapsed {
-        max-width: 1000px
-    }
-    .path_element.collapsed .replacement{
-        opacity: 1;
-        width: 20px;
-        position: absolute;
-        left: 6px; top: 0
-    }
-    .path_element:hover.collapsed .replacement{
-        opacity: 0;
-    }
-    .path_element.collapsed .hidden_label{
-        opacity: 0;
-    }
-    .path_element:hover.collapsed .hidden_label{
-        opacity: 1;
-    }
-
-    .stats {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-    .stats li {
-        display: inline-block;
-        padding: 5px 10px;
-        /*border: 1px solid #ccc;
-        border-radius: 3px;*/
-        margin: 5px
-    }
-    #main_chart {
-        width: 100%;
-        height: 90%;
-        border: 1px solid #ccc;
-        overflow: hidden;
-        margin: 0 auto;
-    }
-    
-    #diff_modal .modal-dialog {
-        max-width: 800px
-    }
-    
-    .notebook_images_thumbnails {
-        margin: 0;
-        padding: 0;
-        height: 50px
-    }
-    
-    .thumbnail-img {
-        max-width: 46px;
-        max-height: 46px;
-    }
-    .thumbnail {
-        display: block;
-        float: left;
-        margin: 0 3px;
-        border: 2px solid #ccc;
-        height:50px
-    }
-    .thumbnail:hover {
-        border-color: black
-    }
-    .popover_img {
-        max-width: 400px
-    }
-    .popover {
-        max-width: 450px
-    }
-    .outline {
-        clear: both;
-    }
-    .outline ul ul ul {
-        max-height: 10px;
-        overflow-y: hidden;
-        transition: all 1s ease
-    }
-    
-    .outline ul ul li:hover ul {
-        max-height: 1000px;
-    }
-    .outline ul ul li:hover ul:after {
-        top: 1000px;
-    }
-    
-    .outline ul li:nth-child(1n+4) {
-        opacity: 0;
-        height: 0
-    }
-    
-    .outline ul li:nth-child(3)::after {
-        content: '(and more)'
-    }
-    
-    .outline ul:hover li:nth-child(1n+4) {
-        opacity: 1;
-        height: initial
-    }
-    
-    .outline ul ul {
-        position: relative
-    }
-    .outline ul ul ul:after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        background: linear-gradient(transparent 4px, white 12px);
-        width: 100%;
-        height: 110%;
-        transition: all 1s ease;
-    }
-    
-    .errored {
-        background-color: red
-    }
-    
-    .fidelity-0, .fidelity-1, .fidelity-2, .fidelity-3, .fidelity-4, .fidelity-5, .fidelity-6, .fidelity-7  {
-        /* TODO a */
-        color: red!important
-    }
-    
-    .fidelity-8 {
-        color: orange!important
-    }
-
-    .fidelity-10 {
-        color: green!important
-    }
-    
-    .edgePath:hover path {
-        stroke: red;
-        fill: red;
-    }
-        </style>
+        {{ css("static/style.css") }}
+        {{ css("static/graph.css") }}
     </head>
     <body>
 
@@ -265,6 +55,7 @@ text {
     </body>
 
 <script>
+  /* TODO move this out, use a templating library (nunjucks? vue?), rewrite to modern JS  */
 var g = new dagreD3.graphlib.Graph({compound:true})
   .setGraph({
       //rankdir: 'LR',
@@ -305,14 +96,13 @@ function format_outline(headers) {
     var last_level = 2;
     
     for (header of headers) {
-                console.log(header)
 
-        var chunks = header.trim().split(' ') 
-        var level = chunks[0].length
-        header = chunks.slice(1).join(' ')
+        let chunks = header.trim().split(' ') ;
+        let level = chunks[0].length;
+        let header = chunks.slice(1).join(' ');
         
         // ignore titles
-        if(level == 1) {
+        if(level === 1) {
             continue
         }
         if (level > last_level) {
@@ -321,11 +111,11 @@ function format_outline(headers) {
         else if (level < last_level) {
             out += '</ul>'.repeat(last_level - level);
         }
-        last_level = level
+        last_level = level;
 
         out += '<li>' + header
     }
-    if(last_level != 1) {
+    if(last_level !== 1) {
         out += '</ul>'
     }
     return out
@@ -417,18 +207,18 @@ var svg = d3.select("svg"),
     d3.selectAll('g.node').each(function(name){
             var node = d3.select(this);
     });
-    svg_node = svg.node()
-    w = svg_node.getBoundingClientRect().width
-    h = svg_node.getBoundingClientRect().height
+    let svg_node = svg.node();
+    let w = svg_node.getBoundingClientRect().width;
+    let h = svg_node.getBoundingClientRect().height;
 
     // graph width and height
-    gw = g.graph().width
-    gh = g.graph().height
+    let gw = g.graph().width;
+    let gh = g.graph().height;
     // width and height extent
-    we = gw / 2 * 1.1
-    he = gh / 2 * 1.1
-    extent = [[-we, -he], [we, he]]
-    var zoom = d3.zoom(extent)
+    let we = gw / 2 * 1.1;
+    let he = gh / 2 * 1.1;
+    let extent = [[-we, -he], [we, he]];
+    let zoom = d3.zoom(extent)
         //.extent(extent)
         //.translateExtent(extent)
         //.translateExtent([[0,0], [g.graph().width, g.graph().height]])
@@ -438,7 +228,7 @@ var svg = d3.select("svg"),
             svgGroup.attr("transform", d3.event.transform);
         });
 
-    initial_scale = Math.min(w / g.graph().width, h / g.graph().height)
+    let initial_scale = Math.min(w / g.graph().width, h / g.graph().height);
 
     svg.call(zoom)
           .call(zoom.transform, d3.zoomIdentity

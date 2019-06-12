@@ -1,0 +1,196 @@
+.clusters rect {
+    fill: #00ffd0;
+    stroke: #999;
+    stroke-width: 1.5px;
+}
+
+text {
+    font-weight: 300;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+.node rect {
+    stroke: #999;
+    fill: #fff;
+    stroke-width: 1.5px;
+}
+
+.edgePath path {
+    stroke: #333;
+    stroke-width: 1.5px;
+}
+
+.data_path {
+    color: #ccc;
+    width: 16px;
+}
+.path_element {
+    cursor: default;
+    display: inline-block;
+    vertical-align: middle;
+    border: 1px solid #e6e5e5;
+    padding: 2px 3px;
+    border-radius: 4px;
+}
+.path_element:hover {
+    border-color: black
+}
+.path_element:not(:last-child) {
+    max-width: 100px;
+    overflow: hidden;
+    position: relative;
+    transition: all 1s ease;
+}
+.path_element:not(:last-child):after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: linear-gradient(to right, transparent 80px, white 105px);
+    width: 120%;
+    height: 100%;
+    transition: all 1s ease;
+}
+.path_element:not(:last-child):hover:after {
+    left: 1000px
+}
+.path_element:not(:last-child):hover {
+    max-width: 1000px
+}
+
+.path {
+    vertical-align: bottom
+}
+
+.path_element * {
+    transition: all 1s ease;
+}
+
+.path_element.collapsed {
+    position: relative;
+    max-width: 20px
+}
+.path_element:hover.collapsed {
+    max-width: 1000px
+}
+.path_element.collapsed .replacement{
+    opacity: 1;
+    width: 20px;
+    position: absolute;
+    left: 6px; top: 0
+}
+.path_element:hover.collapsed .replacement{
+    opacity: 0;
+}
+.path_element.collapsed .hidden_label{
+    opacity: 0;
+}
+.path_element:hover.collapsed .hidden_label{
+    opacity: 1;
+}
+
+.stats {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.stats li {
+    display: inline-block;
+    padding: 5px 10px;
+    /*border: 1px solid #ccc;
+    border-radius: 3px;*/
+    margin: 5px
+}
+
+.notebook_images_thumbnails {
+    margin: 0;
+    padding: 0;
+    height: 50px
+}
+
+.thumbnail-img {
+    max-width: 46px;
+    max-height: 46px;
+}
+.thumbnail {
+    display: block;
+    float: left;
+    margin: 0 3px;
+    border: 2px solid #ccc;
+    height:50px
+}
+.thumbnail:hover {
+    border-color: black
+}
+.popover_img {
+    max-width: 400px
+}
+.popover {
+    max-width: 450px
+}
+.outline {
+    clear: both;
+}
+.outline ul ul ul {
+    max-height: 10px;
+    overflow-y: hidden;
+    transition: all 1s ease
+}
+
+.outline ul ul li:hover ul {
+    max-height: 1000px;
+}
+.outline ul ul li:hover ul:after {
+    top: 1000px;
+}
+
+.outline ul li:nth-child(1n+4) {
+    opacity: 0;
+    height: 0
+}
+
+.outline ul li:nth-child(3)::after {
+    content: '(and more)'
+}
+
+.outline ul:hover li:nth-child(1n+4) {
+    opacity: 1;
+    height: initial
+}
+
+.outline ul ul {
+    position: relative
+}
+.outline ul ul ul:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: linear-gradient(transparent 4px, white 12px);
+    width: 100%;
+    height: 110%;
+    transition: all 1s ease;
+}
+
+.errored {
+    background-color: red
+}
+
+.fidelity-0, .fidelity-1, .fidelity-2, .fidelity-3, .fidelity-4, .fidelity-5, .fidelity-6, .fidelity-7  {
+    /* TODO a */
+    color: red!important
+}
+
+.fidelity-8 {
+    color: orange!important
+}
+
+.fidelity-10 {
+    color: green!important
+}
+
+.edgePath:hover path {
+    stroke: red;
+    fill: red;
+}

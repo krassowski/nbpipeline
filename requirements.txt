@@ -8,3 +8,4 @@ ansi2html
 networkx
 tqdm
 declarative_parser
+jinja2

@@ -167,7 +167,11 @@ class NotebookRule(Rule):
 
     def __init__(
         self, *args, notebook,
-        diff=True, output_nb_dir='/tmp/nbpipeline/out',
+        diff=True,
+        # TODO: make this configurable? ue only relative paths with respect to TemporaryDict?
+        # TODO: this has to be project dependent to avoid conflict caches!
+        # TODO: moving the execution logic to a separate module might be a good idea
+        output_nb_dir='/tmp/nbpipeline/out',
         reference_nb_store='/tmp/nbpipeline/ref/',
         stripped_nb_dir='/tmp/nbpipeline/stripped/',
         **kwargs
@@ -331,6 +335,8 @@ class NotebookRule(Rule):
 
     def to_graphiz(self):
         data = self.to_json()
+
+        # TODO: move to static_graph
         buttons = [
             f'<td href="{self.repository_url}/commits/master/{self.notebook}">{self.changes} changes this month</td>'
         ]
