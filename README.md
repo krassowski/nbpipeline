@@ -8,7 +8,7 @@ If you wish to continue and evaluate it as-is, please follow these steps:
 
 Note: for simplicity I assume that you are using a recent Ubuntu with git installed.
 
-```
+```bash
 git clone https://github.com/krassowski/nbpipeline
 cd nbpipeline
 pip install -r requirements.txt
@@ -19,7 +19,7 @@ ln -s $(pwd)/nbpipeline/nbpipeline.py ~/bin/nbpipeline
 
 Create `pipeline.py` file with list of rules for your pipeline. For example:
 
-```
+```python
 from rules import NotebookRule
 
 NotebookRule(
@@ -34,7 +34,7 @@ NotebookRule(
 NotebookRule(
     'Quality control and PCA on proteins',
     input={'protein_levels_path': 'data/clean/protein/levels.csv'},
-    output={'qc_report_path': 'reports/proteins_failing_qc.csv'),
+    output={'qc_report_path': 'reports/proteins_failing_qc.csv'},
     notebook='protein/Exploration_and_quality_control.ipynb',
     group='Proteomics'
 )
