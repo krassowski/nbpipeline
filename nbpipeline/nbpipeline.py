@@ -44,7 +44,7 @@ class NotebookPipeline:
 
     static_graph = Argument(
         action='store_true',
-        short='g'
+        short='s'
     )
 
     graph_width = Argument(
@@ -55,14 +55,13 @@ class NotebookPipeline:
 
     graph_height = Argument(
         type=int,
-        short='f',
         default=int(1050/2)
     )
 
-    reload_graph = Argument(
+    just_plot_the_last_graph = Argument(
         action='store_true',
-        help='Should the graph be plotted',
-        short='r'
+        help='Skip all computations and just display the most recent graph from previous runs',
+        short='j'
     )
 
     repository_url = Argument(
@@ -79,6 +78,11 @@ class NotebookPipeline:
         help='The browser to display the graph with; by default we will try to use google-chrome in app mode.'
              ' The path to the file will be substituted for {path} variable if present or otherwise, appended'
              ' at the end of the command.'
+    )
+
+    disable_cache = Argument(
+        action='store_true',
+        short='d'
     )
 
     def display(self, path):
@@ -136,14 +140,14 @@ class NotebookPipeline:
 
         graph = RulesGraph(rules)
 
-        if not self.reload_graph:
+        if not self.just_plot_the_last_graph:
 
             for node in graph.iterate_rules():
 
                 if self.dry_run:
                     print(node.name)
                 else:
-                    node.run()
+                    node.run(use_cache=not self.disable_cache)
 
         dag = RulesGraph(rules).graph
 

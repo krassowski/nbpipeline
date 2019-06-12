@@ -74,7 +74,7 @@ class Rule(ABC):
             self.has_inputs = False
 
     @abstractmethod
-    def run(self):
+    def run(self, **kwargs):
         pass
     
     @abstractmethod
@@ -129,7 +129,7 @@ class ShellRule(Rule):
             for arguments_group in self.arguments.values()
         })
 
-    def run(self):
+    def run(self, **kwargs):
         start_time = time.time()
         system(f'{self.command} {self.serialized_arguments}')
         self.execution_time = time.time() - start_time
@@ -210,7 +210,7 @@ class NotebookRule(Rule):
     def outline(self, max_depth=3):
         return self.headers
     
-    def run(self):
+    def run(self, use_cache=True, **kwargs):
         """
         Run JupyterNotebook using PaperMill and compare the output with reference using nbdime
         """
@@ -240,7 +240,7 @@ class NotebookRule(Rule):
 
         to_cache = ['execution_time', 'fidelity', 'diff', 'text_diff', 'todos', 'headers', 'images']
 
-        if cache_nb_file.exists():
+        if use_cache and cache_nb_file.exists():
             with open(cache_nb_file, 'rb') as f:
                 pickled = pickle.load(f)
                 print('Reusing cached results:')
