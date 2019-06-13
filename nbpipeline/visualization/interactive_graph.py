@@ -9,7 +9,7 @@ from rules import Group
 
 def render_template(path, **kwargs):
     env = Environment(
-        loader=PackageLoader('nbpipeline'),
+        loader=PackageLoader('nbpipeline', 'visualization/templates'),
         autoescape=select_autoescape(['html', 'xml'])
     )
     template = env.get_template(path)

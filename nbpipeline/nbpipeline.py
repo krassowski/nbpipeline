@@ -99,12 +99,6 @@ class NotebookPipeline:
             browser += path
         system(browser)
 
-    def metadata(self):
-        return {
-            'repository_url': self.repository_url,
-            **self.parameters
-        }
-
     def export_svg(self, rules_dag, path):
 
         graph_svg = static_graph(rules_dag)
@@ -116,7 +110,7 @@ class NotebookPipeline:
 
     def export_interactive_graph(self, rules_dag: DiGraph, path):
 
-        graph_html = generate_graph(rules_dag)
+        graph_html = generate_graph(rules_dag, **self.parameters)
 
         with open(path, 'w') as f:
             f.write(graph_html)

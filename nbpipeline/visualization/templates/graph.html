@@ -63,8 +63,8 @@ var g = new dagreD3.graphlib.Graph({compound:true})
   })
   .setDefaultEdgeLabel(function() { return {}; });
 
-data = {{ json }};
-repo = {{ repo_url }};
+data = {{ json | safe }};
+repo = '{{ repository_url }}';
 
 for(var node of data.nodes) {
     g.setNode(node.name, node);
@@ -86,20 +86,20 @@ for(var cluster of data.clusters) {
 
 function show_diff(node_name) {
     var node = g.node(node_name);
-    $('#diff_modal_label').html('Reproducibility report for ' + node_name)
+    $('#diff_modal_label').html('Reproducibility report for ' + node_name);
     $('#diff_modal .modal-body').html(node.text_diff);
     $('#diff_modal').modal('toggle');
 }
 
 function format_outline(headers) {
-    var out = '<ul>';
-    var last_level = 2;
-    
-    for (header of headers) {
+    let out = '<ul>';
+    let last_level = 2;
+
+    for (let header of headers) {
 
         let chunks = header.trim().split(' ') ;
         let level = chunks[0].length;
-        let header = chunks.slice(1).join(' ');
+        header = chunks.slice(1).join(' ');
         
         // ignore titles
         if(level === 1) {

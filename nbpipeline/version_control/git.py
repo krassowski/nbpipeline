@@ -4,7 +4,7 @@ from rules import run_command
 def infer_repository_url():
     # TODO this is quite fallible strategy
     try:
-        repo_url = run_command('git remote get-url origin')
+        repo_url = run_command('git remote get-url origin').strip()
         if repo_url.startswith('http'):
             return repo_url
         git, uri = repo_url.split('@')
