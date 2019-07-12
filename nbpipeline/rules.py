@@ -1,5 +1,7 @@
 import json
 import pickle
+import re
+from functools import lru_cache
 from os import system
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -33,7 +35,8 @@ class Rule(ABC):
     def __init__(self, name, **kwargs):
         """Notes:
             - input and output will be passed in the same order as it appears in kwargs
-            - if the input is a dictionary, the keys will be intepreted as argument names; empty key can be used to insert a positional argument
+            - if the input is a dictionary, the keys will be interpreted as argument names;
+              empty key can be used to insert a positional argument
             - the arguments will be serialized preserving the Python type, i.e.
                     input={'name': 1}
                 may result in:
@@ -168,6 +171,7 @@ class NotebookRule(Rule):
     def __init__(
         self, *args, notebook,
         diff=True,
+        deduce_io=True,
         # TODO: make this configurable? ue only relative paths with respect to TemporaryDict?
         # TODO: this has to be project dependent to avoid conflict caches!
         # TODO: moving the execution logic to a separate module might be a good idea
@@ -176,6 +180,16 @@ class NotebookRule(Rule):
         stripped_nb_dir='/tmp/nbpipeline/stripped/',
         **kwargs
     ):
+        """Rule for Jupyter Notebooks
+
+        Args:
+            deduce_io: whether to automatically deduce inputs and outputs from the code cells tagged "inputs" and "outputs";
+                local variables defined in the cell will be evaluated and used as inputs or outputs.
+                If you want to generate paths with a helper function for brevity, assign a dict of {variable: path}
+                to __inputs__/__outputs__ in the tagged cell using io.create_paths() helper.
+            diff: whether to generate diffs against the current state of the notebook
+
+        """
         super().__init__(*args, **kwargs)
         self.todos = []
         self.notebook = notebook
@@ -194,6 +208,44 @@ class NotebookRule(Rule):
         month_ago = (datetime.today() - timedelta(days=30)).timestamp()
         self.changes = run_command(f'git rev-list --max-age {month_ago} HEAD --count {self.notebook}')
 
+        if deduce_io:
+            notebook_json = self.notebook_json
+            io_tags = {'inputs', 'outputs'}
+            io_cells = {}
+
+            for index, cell in enumerate(notebook_json['cells']):
+                if 'tags' in cell['metadata']:
+                    cell_io_tags = io_tags.intersection(cell['metadata']['tags'])
+                    if cell_io_tags:
+                        assert len(cell_io_tags) == 1
+                        io_cells[list(cell_io_tags)[0]] = cell, index
+
+            for io, (cell, index) in io_cells.items():
+                assert not getattr(self, f'has_{io}')
+                source = ''.join(cell['source'])
+                if f'__{io}__' in source:
+                    print(cell['outputs'])
+                    assert len(cell['outputs']) == 1
+                    # TODO: search through lists
+                    values = cell['outputs'][0]['metadata']
+                else:
+                    # so we don't want to use eval (we are not within an isolated copy yet!),
+                    # thus only simple regular expression matching which will fail on multi-line strings
+                    # (and anything which is dynamically generated)
+                    assignments = {
+                        match.group('key'): match.group('value')
+                        for match in re.finditer(r'^\s*(?P<key>.*?)\s*=\s*([\'"])(?P<value>.*)\2', source, re.MULTILINE)
+                    }
+                    values = {
+                        key: value
+                        for key, value in assignments.items()
+                        if key.isidentifier() and value
+                    }
+                    if len(assignments) != len(values):
+                        # TODO: add nice exception or warning
+                        raise
+                setattr(self, io, values)
+
     def serialize(self, arguments_group):
         return '-p ' + (' -p '.join(
             f'{key} {value}'
@@ -209,7 +261,13 @@ class NotebookRule(Rule):
 
     def outline(self, max_depth=3):
         return self.headers
-    
+
+    @property
+    @lru_cache()
+    def notebook_json(self):
+        with open(self.notebook) as f:
+            return json.load(f)
+
     def run(self, use_cache=True, **kwargs):
         """
         Run JupyterNotebook using PaperMill and compare the output with reference using nbdime
@@ -248,8 +306,7 @@ class NotebookRule(Rule):
                     setattr(self, key, pickled[key])
                 return
 
-        with open(notebook) as f:
-            notebook_json = json.load(f)
+        notebook_json = self.notebook_json
 
         self.images = [
             output['data']['image/png']
@@ -372,7 +429,7 @@ class GroupSharingDirectory(Group):
     pass
 
 GroupSharingDirectory(
-    name='analyeses',
+    name='analyses',
     members=[
         NotebookRule(),
         NotebookRule(),
