@@ -20,7 +20,7 @@ if __name__ == '__main__':
         name='nbpipeline',
         packages=find_packages(),
         scripts=['bin/nbpipeline'],
-        version='0.1.5',
+        version='0.1.6',
         license='MIT',
         description='Snakemake-like pipeline manager for reproducible Jupyter Notebooks',
         long_description=get_long_description('README.md'),
@@ -52,5 +52,6 @@ networkx
 tqdm
 declarative_parser
 jinja2
+nbdime
 """.split('\n'),
     )
