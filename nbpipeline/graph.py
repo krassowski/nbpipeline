@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from networkx import DiGraph, topological_sort
 from pandas import DataFrame, read_csv
 
@@ -42,7 +44,7 @@ class InputOutputNode(ArgumentNode):
             sep = ','
         elif self.path.endswith('.tsv'):
             sep = '\t'
-        if not sep:
+        if not sep or not Path(self.path.exists()):
             return DataFrame()
         return read_csv(self.path, sep=sep, nrows=10)
 
