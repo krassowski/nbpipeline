@@ -85,6 +85,8 @@ class NotebookPipeline:
         short='d'
     )
 
+    # TODO: make_output_dirs, default true, uses # Path(null_path).mkdir(parents=True, exist_ok=True)
+
     def display(self, path):
         browser = self.display_graph_with
 
@@ -153,8 +155,12 @@ class NotebookPipeline:
             self.export_svg(dag, path='/tmp/graph.svg')
 
 
-if __name__ == '__main__':
+def main():
     parser = ConstructorParser(NotebookPipeline)
 
     options = parser.parse_args()
     program = parser.constructor(**vars(options))
+
+
+if __name__ == '__main__':
+    main()

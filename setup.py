@@ -19,7 +19,8 @@ if __name__ == '__main__':
     setup(
         name='nbpipeline',
         packages=find_packages(),
-        version='0.1',
+        scripts=['bin/nbpipeline'],
+        version='0.1.1',
         license='MIT',
         description='Snakemake-like pipeline manager for reproducible Jupyter Notebooks',
         long_description=get_long_description('README.md'),

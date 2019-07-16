@@ -8,6 +8,15 @@ If you wish to continue and evaluate it as-is, please follow these steps:
 
 Note: for simplicity I assume that you are using a recent Ubuntu with git installed.
 
+
+```bash
+pip install nbpipeline
+```
+
+#### Developement install
+
+To install the latest developement version you may use:
+
 ```bash
 git clone https://github.com/krassowski/nbpipeline
 cd nbpipeline
