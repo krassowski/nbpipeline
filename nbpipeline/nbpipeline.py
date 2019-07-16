@@ -3,6 +3,7 @@
 from argparse import FileType
 from os import system
 from importlib.util import spec_from_file_location, module_from_spec
+from pathlib import Path
 
 from declarative_parser import Argument
 from declarative_parser.constructor_parser import ConstructorParser
@@ -85,7 +86,10 @@ class NotebookPipeline:
         short='d'
     )
 
-    # TODO: make_output_dirs, default true, uses # Path(null_path).mkdir(parents=True, exist_ok=True)
+    make_output_dirs = Argument(
+        action='store_false',
+        short='m'
+    )
 
     def display(self, path):
         browser = self.display_graph_with
@@ -143,6 +147,7 @@ class NotebookPipeline:
                 if self.dry_run:
                     print(node.name)
                 else:
+                    self.maybe_create_output_dirs(node)
                     node.run(use_cache=not self.disable_cache)
 
         dag = RulesGraph(rules).graph
@@ -154,12 +159,24 @@ class NotebookPipeline:
         if self.static_graph:
             self.export_svg(dag, path='/tmp/graph.svg')
 
+    def maybe_create_output_dirs(self, node):
+        if node.has_outputs and self.make_output_dirs:
+            for name, output in node.outputs.items():
+                path = Path(output)
+                if not path.is_dir():
+                    path = path.parent
+                    assert path.is_dir()
+                if not path.exists():
+                    print('Creating', path, 'for', name)
+                    path.mkdir(parents=True, exist_ok=True)
+
 
 def main():
     parser = ConstructorParser(NotebookPipeline)
 
     options = parser.parse_args()
     program = parser.constructor(**vars(options))
+    return program
 
 
 if __name__ == '__main__':
