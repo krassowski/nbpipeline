@@ -44,7 +44,7 @@ class InputOutputNode(ArgumentNode):
             sep = ','
         elif self.path.endswith('.tsv'):
             sep = '\t'
-        if not sep or not Path(self.path.exists()):
+        if not sep or not Path(self.path).exists():
             return DataFrame()
         return read_csv(self.path, sep=sep, nrows=10)
 
