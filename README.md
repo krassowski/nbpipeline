@@ -3,14 +3,18 @@ Snakemake-like pipelines for Jupyter Notebooks
 
 ### Install & general remarks
 
-these are still early days of this software so please bear in mind that it is not ready for packaging and distribution yet.
-If you wish to continue and evaluate it as-is, please follow these steps:
-
+These are still early days of this software so please bear in mind that it is not ready for production yet.
 Note: for simplicity I assume that you are using a recent Ubuntu with git installed.
 
 
 ```bash
 pip install nbpipeline
+```
+
+Graphiz is required for static SVG plots:
+
+```bash
+sudo apt-get install graphviz libgraphviz-dev graphviz-dev
 ```
 
 #### Developement install
