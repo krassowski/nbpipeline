@@ -8,11 +8,11 @@ from declarative_parser import Argument
 from declarative_parser.constructor_parser import ConstructorParser
 from networkx import DiGraph
 
-from graph import RulesGraph
-from rules import Rule
-from version_control.git import infer_repository_url
-from visualization.interactive_graph import generate_graph
-from visualization.static_graph import static_graph
+from .graph import RulesGraph
+from .rules import Rule
+from .version_control.git import infer_repository_url
+from .visualization.interactive_graph import generate_graph
+from .visualization.static_graph import static_graph
 
 
 def load_module(path):

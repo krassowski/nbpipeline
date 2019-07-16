@@ -1,7 +1,7 @@
 from networkx import DiGraph, topological_sort
 from pandas import DataFrame, read_csv
 
-from rules import Rule
+from .rules import Rule
 
 
 class Node:

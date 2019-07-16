@@ -3,8 +3,8 @@ from collections import defaultdict
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from graph import Cluster
-from rules import Group
+from ..graph import Cluster
+from ..rules import Group
 
 
 def render_template(path, **kwargs):
