@@ -1,4 +1,4 @@
 #!/usr/bin/env python
-from nbpipeline import main
+from nbpipeline.nbpipeline import main
 
 main()
