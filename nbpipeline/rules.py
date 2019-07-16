@@ -167,6 +167,7 @@ def nice_time(seconds):
 class NotebookRule(Rule):
 
     cache_dir = '/tmp/nb_cache/'
+    options: None
 
     def __init__(
         self, *args, notebook,
@@ -267,6 +268,17 @@ class NotebookRule(Rule):
     def notebook_json(self):
         with open(self.notebook) as f:
             return json.load(f)
+
+    def maybe_create_output_dirs(self):
+        if self.has_outputs:
+            for name, output in self.outputs.items():
+                path = Path(self.output_nb_dir) / output
+                if not path.is_dir():
+                    path = path.parent
+                    assert path.is_dir()
+                if not path.exists():
+                    print('Creating', path, 'for', name)
+                    path.mkdir(parents=True, exist_ok=True)
 
     def run(self, use_cache=True, **kwargs):
         """

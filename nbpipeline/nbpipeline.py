@@ -147,7 +147,8 @@ class NotebookPipeline:
                 if self.dry_run:
                     print(node.name)
                 else:
-                    self.maybe_create_output_dirs(node)
+                    if self.make_output_dirs and hasattr(node, 'maybe_create_output_dirs'):
+                        node.maybe_create_output_dirs(node)
                     node.run(use_cache=not self.disable_cache)
 
         dag = RulesGraph(rules).graph
@@ -158,17 +159,6 @@ class NotebookPipeline:
 
         if self.static_graph:
             self.export_svg(dag, path='/tmp/graph.svg')
-
-    def maybe_create_output_dirs(self, node):
-        if node.has_outputs and self.make_output_dirs:
-            for name, output in node.outputs.items():
-                path = Path(output)
-                if not path.is_dir():
-                    path = path.parent
-                    assert path.is_dir()
-                if not path.exists():
-                    print('Creating', path, 'for', name)
-                    path.mkdir(parents=True, exist_ok=True)
 
 
 def main():
