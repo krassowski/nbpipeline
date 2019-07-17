@@ -9,7 +9,6 @@ import time
 from tempfile import NamedTemporaryFile
 
 from .utils import subset_dict_preserving_order, run_command, nice_time
-from .options import PipelineOptions
 
 
 class no_quotes(str):
@@ -30,7 +29,6 @@ class Rule(ABC):
     """
     
     rules = {}
-    pipeline_config: PipelineOptions
 
     def __init__(self, name, **kwargs):
         """Notes:
