@@ -295,7 +295,7 @@ class NotebookRule(Rule):
                 print('Reusing cached results:')
                 for key in to_cache:
                     setattr(self, key, pickled[key])
-                return
+                return 0
 
         notebook_json = self.notebook_json
 
