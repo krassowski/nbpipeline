@@ -2,7 +2,7 @@ from argparse import FileType
 
 from declarative_parser import Argument
 
-from version_control.git import infer_repository_url
+from .version_control.git import infer_repository_url
 
 
 class PipelineOptions:
