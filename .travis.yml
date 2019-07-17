@@ -5,12 +5,11 @@ cache:
 
 python:
   - 3.6
-  - 3.7
 
 install:
   - python3 setup.py install
+  - cd examples
+  - pip install -r requirements.txt
 
 script:
-  - cd examples
   - nbpipeline -d -i
-  - cd ..

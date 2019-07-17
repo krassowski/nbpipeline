@@ -141,7 +141,7 @@ class Pipeline:
         self.display(path)
 
     def __init__(self, **kwargs):
-
+        self.status = 1
         self.parameters = kwargs
 
         for key, value in kwargs.items():
@@ -184,13 +184,14 @@ class Pipeline:
         if self.static_graph:
             self.export_svg(dag, path='/tmp/graph.svg')
 
+        self.status = 0
+
 
 def main():
     parser = ConstructorParser(Pipeline)
-
     options = parser.parse_args()
     program = parser.constructor(**vars(options))
-    return program
+    return program.status
 
 
 if __name__ == '__main__':
