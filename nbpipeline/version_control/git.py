@@ -1,4 +1,4 @@
-from ..rules import run_command
+from ..utils import run_command
 
 
 def infer_repository_url():

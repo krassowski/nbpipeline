@@ -8,11 +8,8 @@ from pathlib import Path
 import time
 from tempfile import NamedTemporaryFile
 
+from .utils import subset_dict_preserving_order, run_command, nice_time
 from .options import PipelineOptions
-
-
-def subset_dict_preserving_order(d, keys):
-    return {k: v for k, v in d.items() if k in keys}
 
 
 class no_quotes(str):
@@ -147,24 +144,6 @@ class ShellRule(Rule):
             'execution_time': self.execution_time,
             'type': 'shell'
         }
-
-
-def run_command(command) -> str:
-    from subprocess import run, PIPE
-    result = run(command.split(' '), stdout=PIPE)
-    return result.stdout.decode('utf-8')
-
-
-def nice_time(seconds):
-    if seconds is None:
-        return
-    total = seconds
-    if total < 1:
-        return f'{seconds * 100:.2f} ns'
-    if total < 60:
-        return f'{seconds:.2f} s'
-    if total < 60*60:
-        return f'{seconds/60:.2f} min'
 
 
 class NotebookRule(Rule):
