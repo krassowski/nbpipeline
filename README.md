@@ -1,4 +1,6 @@
 # nbpipeline
+[![Build Status](https://travis-ci.org/krassowski/nbpipeline.svg?branch=master)](https://travis-ci.org/krassowski/nbpipeline)
+
 Snakemake-like pipelines for Jupyter Notebooks, producing interactive pipeline reports like this:
 
 <img src="https://raw.githubusercontent.com/krassowski/nbpipeline/master/examples/screenshots/example_interactive_result.png" width=400>  <img src="https://raw.githubusercontent.com/krassowski/nbpipeline/master/examples/screenshots/example_diff.png" width=400>
