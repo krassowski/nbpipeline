@@ -160,6 +160,8 @@ class Pipeline:
         # TODO
         # Path(self.output_dir).mkdir(exist_ok=True, parents=True)
 
+        all_success = True
+
         if not self.just_plot_the_last_graph:
 
             for node in graph.iterate_rules():
@@ -170,10 +172,12 @@ class Pipeline:
                     if self.make_output_dirs and hasattr(node, 'maybe_create_output_dirs'):
                         node.maybe_create_output_dirs(node)
                     if self.run_from_root or not hasattr(node, 'notebook'):
-                        node.run(use_cache=not self.disable_cache)
+                        status = node.run(use_cache=not self.disable_cache)
                     else:
                         with cd(Path(node.notebook).parent):
-                            node.run(use_cache=not self.disable_cache)
+                            status = node.run(use_cache=not self.disable_cache)
+                    if status != 0:
+                        all_success = False
 
         dag = RulesGraph(rules).graph
 
@@ -184,7 +188,7 @@ class Pipeline:
         if self.static_graph:
             self.export_svg(dag, path='/tmp/graph.svg')
 
-        self.status = 0
+        self.status = 0 if all_success else 1
 
 
 def main():

@@ -75,7 +75,7 @@ class Rule(ABC):
             self.has_inputs = False
 
     @abstractmethod
-    def run(self, **kwargs):
+    def run(self, **kwargs) -> int:
         pass
     
     @abstractmethod
@@ -130,10 +130,11 @@ class ShellRule(Rule):
             for arguments_group in self.arguments.values()
         })
 
-    def run(self, **kwargs):
+    def run(self, **kwargs) -> int:
         start_time = time.time()
-        system(f'{self.command} {self.serialized_arguments}')
+        status = system(f'{self.command} {self.serialized_arguments}')
         self.execution_time = time.time() - start_time
+        return status
 
     def to_json(self):
         return {
@@ -261,7 +262,7 @@ class NotebookRule(Rule):
                     print('Creating', path, 'for', name)
                     path.mkdir(parents=True, exist_ok=True)
 
-    def run(self, use_cache=True, **kwargs):
+    def run(self, use_cache=True, **kwargs) -> int:
         """
         Run JupyterNotebook using PaperMill and compare the output with reference using nbdime
         """
@@ -358,6 +359,7 @@ class NotebookRule(Rule):
                     key: getattr(self, key)
                     for key in to_cache
                 }, f)
+        return status
 
     def to_json(self):
 
