@@ -8,7 +8,7 @@ from pathlib import Path
 import time
 from tempfile import NamedTemporaryFile
 
-from .utils import subset_dict_preserving_order, run_command, nice_time, cd
+from .utils import subset_dict_preserving_order, run_command, nice_time
 
 
 class no_quotes(str):
@@ -268,98 +268,96 @@ class NotebookRule(Rule):
         notebook = self.notebook
         path = Path(notebook)
 
-        with cd(path.parent):
+        output_nb_dir = Path(self.output_nb_dir) / path.parent
+        output_nb_dir.mkdir(parents=True, exist_ok=True)
 
-            output_nb_dir = Path(self.output_nb_dir) / path.parent
-            output_nb_dir.mkdir(parents=True, exist_ok=True)
+        reference_nb_dir = Path(self.reference_nb_dir) / path.parent
+        reference_nb_dir.mkdir(parents=True, exist_ok=True)
 
-            reference_nb_dir = Path(self.reference_nb_dir) / path.parent
-            reference_nb_dir.mkdir(parents=True, exist_ok=True)
+        stripped_nb_dir = Path(self.stripped_nb_dir) / path.parent
+        stripped_nb_dir.mkdir(parents=True, exist_ok=True)
 
-            stripped_nb_dir = Path(self.stripped_nb_dir) / path.parent
-            stripped_nb_dir.mkdir(parents=True, exist_ok=True)
+        output_nb = output_nb_dir / path.name
+        reference_nb = reference_nb_dir / path.name
+        stripped_nb = stripped_nb_dir / path.name
 
-            output_nb = output_nb_dir / path.name
-            reference_nb = reference_nb_dir / path.name
-            stripped_nb = stripped_nb_dir / path.name
+        md5 = run_command(f'md5sum {str(self.absolute_notebook_path)}').split()[0]
 
-            md5 = run_command(f'md5sum {str(self.absolute_notebook_path)}').split()[0]
+        cache_dir = Path(self.cache_dir) / path.parent
+        cache_dir.mkdir(parents=True, exist_ok=True)
 
-            cache_dir = Path(self.cache_dir) / path.parent
-            cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_nb_file = cache_dir / f'{md5}.json'
 
-            cache_nb_file = cache_dir / f'{md5}.json'
+        to_cache = ['execution_time', 'fidelity', 'diff', 'text_diff', 'todos', 'headers', 'images']
 
-            to_cache = ['execution_time', 'fidelity', 'diff', 'text_diff', 'todos', 'headers', 'images']
+        if use_cache and cache_nb_file.exists():
+            with open(cache_nb_file, 'rb') as f:
+                pickled = pickle.load(f)
+                print('Reusing cached results:')
+                for key in to_cache:
+                    setattr(self, key, pickled[key])
+                return
 
-            if use_cache and cache_nb_file.exists():
-                with open(cache_nb_file, 'rb') as f:
-                    pickled = pickle.load(f)
-                    print('Reusing cached results:')
-                    for key in to_cache:
-                        setattr(self, key, pickled[key])
-                    return
+        notebook_json = self.notebook_json
 
-            notebook_json = self.notebook_json
+        self.images = [
+            output['data']['image/png']
+            for cell in notebook_json['cells']
+            for output in cell.get('outputs', [])
+            if 'data' in output and 'image/png' in output['data']
+        ]
 
-            self.images = [
-                output['data']['image/png']
-                for cell in notebook_json['cells']
-                for output in cell.get('outputs', [])
-                if 'data' in output and 'image/png' in output['data']
-            ]
+        self.headers = []
 
-            self.headers = []
+        for cell in notebook_json['cells']:
+            if cell['cell_type'] == 'markdown':
+                for line in cell['source']:
+                    if line.startswith('#'):
+                        self.headers.append(line)
 
-            for cell in notebook_json['cells']:
-                if cell['cell_type'] == 'markdown':
-                    for line in cell['source']:
-                        if line.startswith('#'):
-                            self.headers.append(line)
+        for cell in notebook_json['cells']:
+            for line in cell.get('source', ''):
+                if 'TODO' in line:
+                    self.todos.append(line)
 
-            for cell in notebook_json['cells']:
-                for line in cell.get('source', ''):
-                    if 'TODO' in line:
-                        self.todos.append(line)
+        # strip outputs (otherwise if it stops, the diff will be too optimistic)
+        system(f'cat {self.absolute_notebook_path} | nbstripout > {stripped_nb}')
 
-            # strip outputs (otherwise if it stops, the diff will be too optimistic)
-            system(f'cat {self.absolute_notebook_path} | nbstripout > {stripped_nb}')
+        # execute
+        start_time = time.time()
+        status = system(f'papermill {stripped_nb} {output_nb} {self.serialized_arguments}') or 0
+        self.execution_time = time.time() - start_time
+        self.status = status
 
-            # execute
-            start_time = time.time()
-            status = system(f'papermill {stripped_nb} {output_nb} {self.serialized_arguments}') or 0
-            self.execution_time = time.time() - start_time
-            self.status = status
+        # inject parameters to a "reference" copy (so that we do not have spurious noise in the diff)
+        system(f'papermill {self.absolute_notebook_path} {reference_nb} {self.serialized_arguments} --prepare-only')
 
-            # inject parameters to a "reference" copy (so that we do not have spurious noise in the diff)
-            system(f'papermill {self.absolute_notebook_path} {reference_nb} {self.serialized_arguments} --prepare-only')
+        if self.generate_diff:
+            with NamedTemporaryFile(delete=False) as tf:
+                command = f'nbdiff {reference_nb} {output_nb} --ignore-metadata --ignore-details --out {tf.name}'
+                run_command(command)
+                with open(tf.name) as f:
+                    self.diff = json.load(f)
 
-            if self.generate_diff:
-                with NamedTemporaryFile(delete=False) as tf:
-                    command = f'nbdiff {reference_nb} {output_nb} --ignore-metadata --ignore-details --out {tf.name}'
-                    run_command(command)
-                    with open(tf.name) as f:
-                        self.diff = json.load(f)
+            command = f'nbdiff {reference_nb} {output_nb} --ignore-metadata --ignore-details --no-use-diff --no-git'
+            self.text_diff = run_command(command)
 
-                command = f'nbdiff {reference_nb} {output_nb} --ignore-metadata --ignore-details --no-use-diff --no-git'
-                self.text_diff = run_command(command)
+            from ansi2html import Ansi2HTMLConverter
+            conv = Ansi2HTMLConverter()
+            self.text_diff = conv.convert(self.text_diff)
 
-                from ansi2html import Ansi2HTMLConverter
-                conv = Ansi2HTMLConverter()
-                self.text_diff = conv.convert(self.text_diff)
+            changes = len(self.diff[0]['diff']) if self.diff else 0
 
-                changes = len(self.diff[0]['diff']) if self.diff else 0
+            # TODO: count only the code cells, not markdown cells?
+            total_cells = len(notebook_json['cells'])
+            self.fidelity = (total_cells - changes) / total_cells * 100
 
-                # TODO: count only the code cells, not markdown cells?
-                total_cells = len(notebook_json['cells'])
-                self.fidelity = (total_cells - changes) / total_cells * 100
-
-            if status == 0:
-                with open(cache_nb_file, 'wb') as f:
-                    pickle.dump({
-                        key: getattr(self, key)
-                        for key in to_cache
-                    }, f)
+        if status == 0:
+            with open(cache_nb_file, 'wb') as f:
+                pickle.dump({
+                    key: getattr(self, key)
+                    for key in to_cache
+                }, f)
 
     def to_json(self):
 

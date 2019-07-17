@@ -8,6 +8,7 @@ from declarative_parser import Argument
 from declarative_parser.constructor_parser import ConstructorParser
 from networkx import DiGraph
 
+from .utils import cd
 from .version_control.git import infer_repository_url
 from .graph import RulesGraph
 from .rules import Rule
@@ -102,7 +103,7 @@ class Pipeline:
         short='m'
     )
 
-    include_root_in_python_path = Argument(
+    run_from_root = Argument(
         action='store_true',
         default=False
     )
@@ -159,11 +160,6 @@ class Pipeline:
         # TODO
         # Path(self.output_dir).mkdir(exist_ok=True, parents=True)
 
-        if self.include_root_in_python_path:
-            # TODO: test this
-            root = Path(self.definitions_file).parent
-            system(f'export PYTHONPATH = {root}:$PYTHONPATH')
-
         if not self.just_plot_the_last_graph:
 
             for node in graph.iterate_rules():
@@ -173,7 +169,11 @@ class Pipeline:
                 else:
                     if self.make_output_dirs and hasattr(node, 'maybe_create_output_dirs'):
                         node.maybe_create_output_dirs(node)
-                    node.run(use_cache=not self.disable_cache)
+                    if self.run_from_root or not hasattr(node, 'notebook'):
+                        node.run(use_cache=not self.disable_cache)
+                    else:
+                        with cd(Path(node.notebook).parent):
+                            node.run(use_cache=not self.disable_cache)
 
         dag = RulesGraph(rules).graph
 
