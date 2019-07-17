@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
@@ -9,7 +10,7 @@ from ..rules import Group
 
 def render_template(path, **kwargs):
     env = Environment(
-        loader=PackageLoader('nbpipeline', 'visualization/templates'),
+        loader=PackageLoader('nbpipeline', str(Path(__file__).parent / 'templates')),
         autoescape=select_autoescape(['html', 'xml'])
     )
     template = env.get_template(path)
