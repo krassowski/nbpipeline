@@ -2,6 +2,7 @@
 import os
 from os import system
 from importlib.util import spec_from_file_location, module_from_spec
+from pathlib import Path
 
 from declarative_parser.constructor_parser import ConstructorParser
 from networkx import DiGraph
@@ -71,6 +72,7 @@ class Pipeline(PipelineOptions):
             rule.repository_url = self.repository_url
 
         graph = RulesGraph(rules)
+        Path(self.output_dir).mkdir(exist_ok=True, parents=True)
 
         if not self.just_plot_the_last_graph:
 

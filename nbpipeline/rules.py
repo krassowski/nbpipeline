@@ -275,7 +275,7 @@ class NotebookRule(Rule):
     def maybe_create_output_dirs(self):
         if self.has_outputs:
             for name, output in self.outputs.items():
-                path = Path(self.output_nb_dir) / output
+                path = Path(output)
                 if not path.is_dir():
                     path = path.parent
                     assert path.is_dir()
