@@ -104,7 +104,7 @@ class Pipeline:
     )
 
     run_from_root = Argument(
-        action='store_false'
+        action='store_true'
     )
 
     def display(self, path):
