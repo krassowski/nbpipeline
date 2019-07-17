@@ -1,3 +1,8 @@
+from contextlib import contextmanager
+import os
+from pathlib import Path
+
+
 def subset_dict_preserving_order(d, keys):
     return {k: v for k, v in d.items() if k in keys}
 
@@ -18,3 +23,13 @@ def nice_time(seconds):
         return f'{seconds:.2f} s'
     if total < 60*60:
         return f'{seconds/60:.2f} min'
+
+
+@contextmanager
+def cd(path: Path):
+    last_path = Path.cwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(last_path)

@@ -22,7 +22,7 @@ if __name__ == '__main__':
         scripts=['bin/nbpipeline'],
         version='0.1.12',
         license='MIT',
-        package_data={'nbpipeline': ['visualization/templates/*']},
+        package_data={'nbpipeline': ['visualization/templates/*', 'visualization/templates/static/*']},
         include_package_data=True,
         description='Snakemake-like pipeline manager for reproducible Jupyter Notebooks',
         long_description=get_long_description('README.md'),

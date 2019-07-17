@@ -17,9 +17,9 @@ Graphiz is required for static SVG plots:
 sudo apt-get install graphviz libgraphviz-dev graphviz-dev
 ```
 
-#### Developement install
+#### Development install
 
-To install the latest developement version you may use:
+To install the latest development version you may use:
 
 ```bash
 git clone https://github.com/krassowski/nbpipeline
@@ -33,25 +33,27 @@ ln -s $(pwd)/nbpipeline/nbpipeline.py ~/bin/nbpipeline
 Create `pipeline.py` file with list of rules for your pipeline. For example:
 
 ```python
-from rules import NotebookRule
+from nbpipeline.rules import NotebookRule
+
 
 NotebookRule(
     'Extract protein data',  # a nice name for the step
-    input={'protein_data_path': 'data/raw/Protein/data_from_wetlab.xlsx'},
-    output={'output_path': 'data/clean/protein/levels.csv'},
-    notebook='protein/Data_extraction.ipynb',
-    group='Proteomics', # this is optional
+    input={'protein_data_path': 'data/raw/data_from_wetlab.xlsx'},
+    output={'output_path': 'data/clean/protein_levels.csv'},
+    notebook='analyses/Data_extraction.ipynb',
+    group='Proteomics'  # this is optional
 )
-
 
 NotebookRule(
     'Quality control and PCA on proteins',
-    input={'protein_levels_path': 'data/clean/protein/levels.csv'},
+    input={'protein_levels_path': 'data/clean/protein_levels.csv'},
     output={'qc_report_path': 'reports/proteins_failing_qc.csv'},
-    notebook='protein/Exploration_and_quality_control.ipynb',
+    notebook='analyses/Exploration_and_quality_control.ipynb',
     group='Proteomics'
 )
 ```
+
+Please see the example pipeline and notebooks in examples directory.
 
 the keys of the input and output variables should correspond to variables in one of the first cells
 in the corresponding notebook, which should be tagged as "parameters".

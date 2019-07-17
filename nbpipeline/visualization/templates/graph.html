@@ -161,7 +161,7 @@ g.nodes().forEach(function(v) {
             + '<ul class="stats">'
             + '<li><i class="fas fa-hourglass-end"></i> ' + node.nice_time
             + '<li>' + '<a href="javascript:show_diff(\'' + node.name + '\')" class="fidelity-' + (node.fidelity / 10).toFixed(0) + '">' + (node.fidelity ? parseFloat(node.fidelity.toFixed(2)) : '?') + '% reproducible</a>'
-            + '<li><i class="fab fa-git-alt"></i> ' + '<a href="' + repo + '/commits/master/' + node.notebook + '" title="Changes this month">' + node.changes_this_month + ' recent changes</a>'
+            + '<li><i class="fab fa-git-alt"></i> ' + '<a href="' + repo + '/commits/master/' + node.notebook + '" title="Changes this month">' + node.changes_this_month + ' recent change' + (node.changes_this_month > 1 ? 's' : '') + '</a>'
             + '</ul>'
             + images
             + '<div class="outline">' + format_outline(node.headers) + '</div>'

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import os
 from argparse import FileType
 from os import system
 from importlib.util import spec_from_file_location, module_from_spec
@@ -86,14 +85,26 @@ class Pipeline:
         short='d'
     )
 
-    output_dir = Argument(
-        type=str,
-        default='nbpipe_out/'
-    )
+    # TODO:
+    # output_dir = Argument(
+    #     type=str,
+    #     default='nbpipe_out/'
+    # )
+    # to make the output dir work we need to:
+    # - have symlinks to all inputs in the 'output_dir'
+    # - prefix everything (input and outputs) with 'output_dir'
+    # - we would need to detect inputs with symlinks used in outputs and raise in such cases
+    #   so that the user would not loose precious input data by accident (but give an option to disable)
+    # simple change of cwd does not work as we python can no longer resolve modules
 
     make_output_dirs = Argument(
         action='store_false',
         short='m'
+    )
+
+    include_root_in_python_path = Argument(
+        action='store_true',
+        default=False
     )
 
     def display(self, path):
@@ -145,7 +156,13 @@ class Pipeline:
             rule.repository_url = self.repository_url
 
         graph = RulesGraph(rules)
-        Path(self.output_dir).mkdir(exist_ok=True, parents=True)
+        # TODO
+        # Path(self.output_dir).mkdir(exist_ok=True, parents=True)
+
+        if self.include_root_in_python_path:
+            # TODO: test this
+            root = Path(self.definitions_file).parent
+            system(f'export PYTHONPATH = {root}:$PYTHONPATH')
 
         if not self.just_plot_the_last_graph:
 
@@ -154,7 +171,6 @@ class Pipeline:
                 if self.dry_run:
                     print(node.name)
                 else:
-                    os.chdir(self.output_dir)
                     if self.make_output_dirs and hasattr(node, 'maybe_create_output_dirs'):
                         node.maybe_create_output_dirs(node)
                     node.run(use_cache=not self.disable_cache)
