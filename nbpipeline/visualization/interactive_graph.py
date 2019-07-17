@@ -9,8 +9,9 @@ from ..rules import Group
 
 
 def render_template(path, **kwargs):
+    templates_path = Path(__file__).parent / 'templates'
     env = Environment(
-        loader=PackageLoader('nbpipeline', str(Path(__file__).parent / 'templates')),
+        loader=PackageLoader('nbpipeline', str(templates_path)),
         autoescape=select_autoescape(['html', 'xml'])
     )
     template = env.get_template(path)

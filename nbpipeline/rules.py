@@ -174,6 +174,7 @@ class NotebookRule(Rule):
         super().__init__(*args, **kwargs)
         self.todos = []
         self.notebook = notebook
+        self.absolute_notebook_path = Path(notebook).absolute()
         self.generate_diff = diff
         self.output_nb_dir = output_nb_dir
         self.reference_nb_dir = reference_nb_store
@@ -246,7 +247,7 @@ class NotebookRule(Rule):
     @property
     @lru_cache()
     def notebook_json(self):
-        with open(self.notebook) as f:
+        with open(self.absolute_notebook_path) as f:
             return json.load(f)
 
     def maybe_create_output_dirs(self):
@@ -281,7 +282,7 @@ class NotebookRule(Rule):
         reference_nb = reference_nb_dir / path.name
         stripped_nb = stripped_nb_dir / path.name
 
-        md5 = run_command(f'md5sum {notebook}').split()[0]
+        md5 = run_command(f'md5sum {str(self.absolute_notebook_path)}').split()[0]
 
         cache_dir = Path(self.cache_dir) / path.parent
         cache_dir.mkdir(parents=True, exist_ok=True)
