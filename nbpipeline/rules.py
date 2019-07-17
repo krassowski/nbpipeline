@@ -8,6 +8,8 @@ from pathlib import Path
 import time
 from tempfile import NamedTemporaryFile
 
+from .options import PipelineOptions
+
 
 def subset_dict_preserving_order(d, keys):
     return {k: v for k, v in d.items() if k in keys}
@@ -31,6 +33,7 @@ class Rule(ABC):
     """
     
     rules = {}
+    pipeline_config: PipelineOptions
 
     def __init__(self, name, **kwargs):
         """Notes:
