@@ -1,5 +1,8 @@
 # nbpipeline
-Snakemake-like pipelines for Jupyter Notebooks
+Snakemake-like pipelines for Jupyter Notebooks, producing interactive pipeline reports like this:
+
+[!Interactive result](https://raw.githubusercontent.com/krassowski/nbpipeline/master/examples/screenshots/example_interactive_result.png) [!Reproducibility details](https://raw.githubusercontent.com/krassowski/nbpipeline/master/examples/screenshots/example_diff.pngg)
+
 
 ### Install & general remarks
 
