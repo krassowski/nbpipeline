@@ -1,0 +1,16 @@
+language: python
+cache:
+  - directories:
+    - $HOME/.cache/pip
+
+python:
+  - 3.6
+  - 3.7
+
+install:
+  - python3 setup.py install
+
+script:
+  - cd examples
+  - nbpipeline -d -i
+  - cd ..
