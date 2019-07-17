@@ -255,11 +255,9 @@ class NotebookRule(Rule):
         if self.has_outputs:
             for name, output in self.outputs.items():
                 path = Path(output)
-                if not path.is_dir():
-                    path = path.parent
-                    assert path.is_dir()
+                path = path.parent
                 if not path.exists():
-                    print('Creating', path, 'for', name)
+                    print(f'Creating path "{path}" for "{name}" output argument')
                     path.mkdir(parents=True, exist_ok=True)
 
     def run(self, use_cache=True, **kwargs) -> int:

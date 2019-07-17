@@ -98,14 +98,13 @@ class Pipeline:
     #   so that the user would not loose precious input data by accident (but give an option to disable)
     # simple change of cwd does not work as we python can no longer resolve modules
 
-    make_output_dirs = Argument(
+    do_not_make_output_dirs = Argument(
         action='store_false',
         short='m'
     )
 
     run_from_root = Argument(
-        action='store_true',
-        default=False
+        action='store_false'
     )
 
     def display(self, path):
@@ -169,8 +168,8 @@ class Pipeline:
                 if self.dry_run:
                     print(node.name)
                 else:
-                    if self.make_output_dirs and hasattr(node, 'maybe_create_output_dirs'):
-                        node.maybe_create_output_dirs(node)
+                    if not self.do_not_make_output_dirs and hasattr(node, 'maybe_create_output_dirs'):
+                        node.maybe_create_output_dirs()
                     if self.run_from_root or not hasattr(node, 'notebook'):
                         status = node.run(use_cache=not self.disable_cache)
                     else:
