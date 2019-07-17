@@ -57,11 +57,12 @@ NotebookRule(
 )
 ```
 
-Please see the example pipeline and notebooks in examples directory.
-
 the keys of the input and output variables should correspond to variables in one of the first cells
 in the corresponding notebook, which should be tagged as "parameters".
 You will be warned if your notebook has no cell tagged as "parameters".
+
+For more details, please see the example [pipeline](https://github.com/krassowski/nbpipeline/blob/master/examples/pipeline.py) and [notebooks](https://github.com/krassowski/nbpipeline/tree/master/examples/analyses) in the [examples](https://github.com/krassowski/nbpipeline/tree/master/examples) directory.
+
 
 #### Run the pipeline:
 
