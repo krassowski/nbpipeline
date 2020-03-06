@@ -67,7 +67,7 @@ For more details, please see the example [pipeline](https://github.com/krassowsk
 #### Run the pipeline:
 
 ```
-nbpipepline
+nbpipeline
 ```
 
 On any consecutive run the notebooks which did not change will not be run again.
@@ -76,7 +76,7 @@ To disable this cache, use `--disable_cache` switch.
 To generate an interactive diagram of the rules graph, together with reproducibility report add `-i` switch:
 
 ```
-nbpipepline -i
+nbpipeline -i
 ```
 
 The software defaults to `google-chrome` for graph visualization display, which can be changed with a CLI option.
@@ -84,12 +84,12 @@ The software defaults to `google-chrome` for graph visualization display, which 
 If you named your definition files differently (e.g. `my_rules.py` instead of `pipeline.py`), use:
 
 ```
-nbpipepline --definitions_file my_rules.py
+nbpipeline --definitions_file my_rules.py
 ```
 
 
 To display all command line options use:
 
 ```
-nbpipepline -h
+nbpipeline -h
 ```
