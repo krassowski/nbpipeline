@@ -66,8 +66,8 @@ For more details, please see the example [pipeline](https://github.com/krassowsk
 
 #### Run the pipeline:
 
-```
-nbpipepline
+```bash
+nbpipeline
 ```
 
 On any consecutive run the notebooks which did not change will not be run again.
@@ -75,21 +75,30 @@ To disable this cache, use `--disable_cache` switch.
 
 To generate an interactive diagram of the rules graph, together with reproducibility report add `-i` switch:
 
-```
-nbpipepline -i
+```bash
+nbpipeline -i
 ```
 
 The software defaults to `google-chrome` for graph visualization display, which can be changed with a CLI option.
 
 If you named your definition files differently (e.g. `my_rules.py` instead of `pipeline.py`), use:
 
-```
-nbpipepline --definitions_file my_rules.py
+```bash
+nbpipeline --definitions_file my_rules.py
 ```
 
 
 To display all command line options use:
 
+```bash
+nbpipeline -h
 ```
-nbpipepline -h
+
+
+#### Troubleshooting
+
+If you see `ModuleNotFoundError: No module named 'name_of_your_local_module'`, you may need to enforce the path, running nbpipeline with:
+
+```bash
+PYTHONPATH=/path/to/the/parent/of/local/module:$PYTHONPATH nbpipeline
 ```
