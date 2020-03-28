@@ -102,3 +102,10 @@ If you see `ModuleNotFoundError: No module named 'name_of_your_local_module'`, y
 ```bash
 PYTHONPATH=/path/to/the/parent/of/local/module:$PYTHONPATH nbpipeline
 ```
+
+Oftentimes the path is the same as the current directory, so the following command may work:
+
+
+```bash
+PYTHONPATH=$(pwd):$PYTHONPATH nbpipeline
+```
