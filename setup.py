@@ -28,7 +28,7 @@ if __name__ == '__main__':
         long_description=get_long_description('README.md'),
         author='Michal Krassowski',
         author_email='krassowski.michal+pypi@gmail.com',
-        url='https://github.com/krassowskinbpipeline',
+        url='https://github.com/krassowski/nbpipeline',
         keywords=['snakemake', 'pipeline', 'reproducible', 'jupyter', 'notebooks'],
         classifiers=[
             'Development Status :: 4 - Beta',
