@@ -166,7 +166,7 @@ class Pipeline:
             for node in graph.iterate_rules():
 
                 if self.dry_run:
-                    print(node.name)
+                    print(node)
                 else:
                     if not self.do_not_make_output_dirs and hasattr(node, 'maybe_create_output_dirs'):
                         node.maybe_create_output_dirs()
