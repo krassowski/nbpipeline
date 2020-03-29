@@ -20,7 +20,7 @@ if __name__ == '__main__':
         name='nbpipeline',
         packages=find_packages(),
         scripts=['bin/nbpipeline'],
-        version='0.1.18',
+        version='0.2.0',
         license='MIT',
         package_data={'nbpipeline': ['visualization/templates/*', 'visualization/templates/static/*']},
         include_package_data=True,
@@ -40,7 +40,8 @@ if __name__ == '__main__':
             'Intended Audience :: Developers',
             'Intended Audience :: Science/Research',
             'Programming Language :: Python :: 3.6',
-            'Programming Language :: Python :: 3.7'
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8'
         ],
         install_requires="""
 pandas
