@@ -82,6 +82,19 @@ class Rule(ABC):
     def to_json(self):
         pass
 
+    def __repr__(self):
+        fragments = [repr(self.name)]
+        if self.group:
+            fragments.append(f'({self.group})')
+        if self.has_inputs or self.has_inputs:
+            fragments.append('with')
+        if self.has_inputs:
+            fragments.append(f'{len(self.inputs)} inputs')
+        if self.has_outputs:
+            fragments.append(f'{len(self.outputs)} outputs')
+        fragments = ' '.join(fragments)
+        return f'<{self.__class__.__name__} {fragments}>'
+
 
 class Group:
     """A group of rules"""
