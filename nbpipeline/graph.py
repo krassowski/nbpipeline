@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from networkx import DiGraph, topological_sort
+from networkx import DiGraph
 from pandas import DataFrame, read_csv
 
 from .rules import Rule
@@ -12,7 +12,8 @@ class Node:
         pass
 
     def __repr__(self):
-        return self.name.split('/')[-1]
+        name = self.name.split('/')[-1]
+        return f'<{self.__class__.__name__} {name}>'
 
 
 class ArgumentNode(Node):
@@ -63,32 +64,97 @@ class RulesGraph:
     def __init__(self, rules):
 
         graph = DiGraph()
+        io_nodes = {}
 
         for rule in rules.values():
             rule_node = rule
             graph.add_node(rule_node, **rule_node.to_graphiz())
 
             if rule.has_outputs:
-                for key, output in rule.outputs.items():
-                    output = InputOutputNode(output, group=rule.group)
-                    if not graph.has_node(output):
-                        graph.add_node(output, **output.to_json())
-                    graph.add_edge(rule_node, output)
+                for output in rule.outputs.values():
+                    if output not in io_nodes:
+                        output_node = InputOutputNode(output, group=rule.group)
+                        io_nodes[output] = output_node
+                        graph.add_node(output_node, **output_node.to_json())
+                    output_node = io_nodes[output]
+                    graph.add_edge(rule_node, output_node)
             if rule.has_inputs:
-                for key, input in rule.inputs.items():
-                    input = InputOutputNode(input, group=rule.group)
-                    if not graph.has_node(input):
-                        graph.add_node(input, **input.to_json())
-                    graph.add_edge(input, rule_node)
+                for input in rule.inputs.values():
+                    if input not in io_nodes:
+                        input_node = InputOutputNode(input, group=rule.group)
+                        io_nodes[input] = input_node
+                        graph.add_node(input_node, **input_node.to_json())
+                    input_node = io_nodes[input]
+                    graph.add_edge(input_node, rule_node)
 
         self.graph = graph
 
-    def iterate_rules(self):
-        return reversed([
+    def iterate_rules(self, verbose=False):
+
+        rules = {
             node
-            for node in topological_sort(self.graph)
+            for node in self.graph.nodes()
             if isinstance(node, Rule)
-        ])
+        }
+
+        available_inputs = {
+            node
+            for node in self.graph.nodes()
+            if isinstance(node, InputOutputNode) and len(self.graph.in_edges(node)) == 0
+        }
+
+        roots = {
+            rule
+            for rule in rules
+            # no inputs, or all inputs are available from start (do not relay on other rules)
+            if not rule.has_inputs or all(
+                input in available_inputs
+                for input, myself in self.graph.in_edges(rule)
+            )
+        }
+
+        sort = []
+
+        leads = list(roots)
+
+        if verbose:
+            print(f'Starting with: {leads}')
+            print(f'Inputs available to start with: {available_inputs}')
+
+        while leads:
+            rule = leads.pop(0)
+            if rule in sort:
+                continue
+            if any(input not in available_inputs for input, myself in self.graph.in_edges(rule)):
+                # cannot process just yet (some input is missing), move to the back of the queue
+                if verbose:
+                    print(f'cannot process {rule} just yet (some input is missing), moving it to the back of the queue')
+                leads.append(rule)
+                continue
+
+            if verbose:
+                print(f'processing {rule}')
+            # mark as visited
+            rules.remove(rule)
+            sort.append(rule)
+
+            # add outputs
+            for myself, output in self.graph.out_edges(rule):
+                assert rule == myself
+                if verbose:
+                    print(f'got output: {output} ')
+                available_inputs.add(output)
+                # and start thinking about tasks which can be accomplished using these outputs
+                for itself, next_node in self.graph.out_edges(output):
+                    assert itself == output
+                    assert isinstance(next_node, Rule)
+                    if verbose:
+                        print(f'adding {next_node} to consider later')
+                    leads.append(next_node)
+
+        assert not rules
+
+        return sort
 
 
 class Cluster(object):
