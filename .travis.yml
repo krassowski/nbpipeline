@@ -16,7 +16,7 @@ script:
   - cd examples
   - nbpipeline -d -i
   - cd ..
-  - python3 -m pytest --cov=data_vault -v
+  - python3 -m pytest --cov=nbpipeline -v
 
 after_success:
   - codecov
