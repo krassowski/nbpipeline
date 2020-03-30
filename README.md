@@ -58,8 +58,13 @@ NotebookRule(
 ```
 
 the keys of the input and output variables should correspond to variables in one of the first cells
-in the corresponding notebook, which should be tagged as "parameters".
-You will be warned if your notebook has no cell tagged as "parameters".
+in the corresponding notebook, which should be tagged as "parameters". It can be done easily in JupyterLab:
+
+<img src="https://raw.githubusercontent.com/krassowski/nbpipeline/master/examples/screenshots/tags_in_JupyterLab_2.0.png" width=550>
+
+If you forget to add them, a warning will be displayed.
+
+Alternativaly, you can create a dedicated cell for input paths definitions and tag it "inputs" and a separate one for output   paths definitions, tagging it "outputs", which allows to omit input and output keywords when creating a `NotebookRule`. However, only simple variable definitions will be deduced (parsing uses regular expressions to avoid potential dangers of `eval`).
 
 For more details, please see the example [pipeline](https://github.com/krassowski/nbpipeline/blob/master/examples/pipeline.py) and [notebooks](https://github.com/krassowski/nbpipeline/tree/master/examples/analyses) in the [examples](https://github.com/krassowski/nbpipeline/tree/master/examples) directory.
 
