@@ -1,5 +1,6 @@
 # nbpipeline
 [![Build Status](https://travis-ci.org/krassowski/nbpipeline.svg?branch=master)](https://travis-ci.org/krassowski/nbpipeline)
+[![DOI](https://zenodo.org/badge/188075188.svg)](https://zenodo.org/badge/latestdoi/188075188)
 
 Snakemake-like pipelines for Jupyter Notebooks, producing interactive pipeline reports like this:
 
