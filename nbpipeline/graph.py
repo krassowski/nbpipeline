@@ -1,15 +1,20 @@
+from functools import partial
 from pathlib import Path
+from typing import List
+from warnings import warn
 
 from networkx import DiGraph
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, read_csv, read_table, read_excel, read_html, read_json
 
 from .rules import Rule
 
 
 class Node:
 
-    def __init__(self):
-        pass
+    def __init__(self, name, group):
+        super().__init__()
+        self.name = name
+        self.group = group
 
     def __repr__(self):
         name = self.name.split('/')[-1]
@@ -17,11 +22,6 @@ class Node:
 
 
 class ArgumentNode(Node):
-
-    def __init__(self, name, group):
-        super().__init__()
-        self.name = name
-        self.group = group
 
     def to_json(self):
         return {
@@ -38,23 +38,41 @@ class InputOutputNode(ArgumentNode):
         self.path = path
         super().__init__(name=path, group=group)
 
+    readers = {
+        'csv': read_csv,
+        'tsv': read_table,
+        'xls': read_excel,
+        'xlsx': read_excel,
+        'html': read_html,
+        'json': read_json,
+        # just read anything as rows, ignore sep
+        'txt': partial(read_table, sep='||||||||')
+    }
+
+    @property
+    def exists(self):
+        return Path(self.path).exists()
+
     @property
     def head(self) -> DataFrame:
-        sep = None
-        if self.path.endswith('.csv'):
-            sep = ','
-        elif self.path.endswith('.tsv'):
-            sep = '\t'
-        if not sep or not Path(self.path).exists():
+        if not self.exists:
             return DataFrame()
-        return read_csv(self.path, sep=sep, nrows=10)
+        extension = Path(self.path).suffix
+        if extension in self.readers:
+            read = self.readers[extension]
+            try:
+                return read(self.path, nrows=10)
+            except Exception as e:
+                warn(f'Failed to read file {self.path}: {e}')
+        return DataFrame()
 
     def to_json(self):
         return {
             **super().to_json(),
             **{
                 'type': 'io',
-                'head': self.head.to_html()
+                'head': self.head.to_html(),
+                'exists': self.exists
             }
         }
 
@@ -89,7 +107,14 @@ class RulesGraph:
 
         self.graph = graph
 
-    def iterate_rules(self, verbose=False):
+    def iterate_rules(self, verbose=False) -> List[Rule]:
+        """Order rules (tasks) in an order allowing for sequential execution,
+
+        so that each task has the required inputs available
+        at the time it is scheduled to run (where the inputs
+        are outputs of previously run tasks, or just inputs
+        which do not depend on any other tasks)
+        """
 
         rules = {
             node
