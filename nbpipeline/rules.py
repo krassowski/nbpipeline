@@ -216,6 +216,7 @@ class NotebookRule(Rule):
 
     def deduce_io_from_data_vault(self):
         notebook_json = self.notebook_json
+        stored = set()
         for index, cell in enumerate(notebook_json['cells']):
             if 'source' not in cell:
                 continue
@@ -235,13 +236,19 @@ class NotebookRule(Rule):
                         variables = arguments['import']
                         for var_index, variable in enumerate(split_variables(variables)):
                             if 'from' in arguments:
-                                self.inputs[(index, var_index)] = arguments['from'] + '/' + variable
+                                import_path = arguments['from'] + '/' + variable
                             else:
-                                self.inputs[(index, var_index)] = unquote(arguments['import'])
+                                import_path = unquote(arguments['import'])
+                            if import_path in stored:
+                                warn(f'Skipping {line} which was previously stored from this notebook to avoid cycles')
+                            else:
+                                self.inputs[(index, var_index)] = import_path
                         self.has_inputs = True
                     elif isinstance(action, StoreAction):
-                        self.outputs[index] = arguments['in'] + '/' + arguments['store']
+                        store_path = arguments['in'] + '/' + arguments['store']
+                        self.outputs[index] = store_path
                         self.has_outputs = True
+                        stored.add(store_path)
 
     def deduce_io_from_tags(self, io_tags={'inputs', 'outputs'}):
         notebook_json = self.notebook_json
