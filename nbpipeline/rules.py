@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 import time
 from tempfile import NamedTemporaryFile
+from warnings import warn
 
 from .utils import subset_dict_preserving_order, run_command, nice_time
 
@@ -59,6 +60,8 @@ class Rule(ABC):
         )
 
         self.group = kwargs.get('group', None)
+        self.outputs = {}
+        self.inputs = {}
 
         if 'output' in kwargs:
             self.has_outputs = True
@@ -167,6 +170,7 @@ class NotebookRule(Rule):
         self, *args, notebook,
         diff=True,
         deduce_io=True,
+        deduce_io_from_data_vault=True,
         # TODO: make this configurable? ue only relative paths with respect to TemporaryDict?
         # TODO: this has to be project dependent to avoid conflict caches!
         # TODO: moving the execution logic to a separate module might be a good idea
@@ -205,43 +209,74 @@ class NotebookRule(Rule):
         self.changes = run_command(f'git rev-list --max-age {month_ago} HEAD --count {self.notebook}')
 
         if deduce_io:
-            notebook_json = self.notebook_json
-            io_tags = {'inputs', 'outputs'}
-            io_cells = {}
+            self.deduce_io_from_tags()
 
-            for index, cell in enumerate(notebook_json['cells']):
-                if 'tags' in cell['metadata']:
-                    cell_io_tags = io_tags.intersection(cell['metadata']['tags'])
-                    if cell_io_tags:
-                        assert len(cell_io_tags) == 1
-                        io_cells[list(cell_io_tags)[0]] = cell, index
+        if deduce_io_from_data_vault:
+            self.deduce_io_from_data_vault()
 
-            for io, (cell, index) in io_cells.items():
-                assert not getattr(self, f'has_{io}')
-                source = ''.join(cell['source'])
-                if f'__{io}__' in source:
-                    print(cell['outputs'])
-                    assert len(cell['outputs']) == 1
-                    # TODO: search through lists
-                    values = cell['outputs'][0]['metadata']
-                else:
-                    # so we don't want to use eval (we are not within an isolated copy yet!),
-                    # thus only simple regular expression matching which will fail on multi-line strings
-                    # (and anything which is dynamically generated)
-                    assignments = {
-                        match.group('key'): match.group('value')
-                        for match in re.finditer(r'^\s*(?P<key>.*?)\s*=\s*([\'"])(?P<value>.*)\2', source, re.MULTILINE)
-                    }
-                    values = {
-                        key: value
-                        for key, value in assignments.items()
-                        if key.isidentifier() and value
-                    }
-                    if len(assignments) != len(values):
-                        # TODO: add nice exception or warning
-                        raise
-                setattr(self, io, values)
-                setattr(self, f'has_{io}', True)
+    def deduce_io_from_data_vault(self):
+        notebook_json = self.notebook_json
+        for index, cell in enumerate(notebook_json['cells']):
+            if 'source' not in cell:
+                continue
+            for line in cell['source']:
+                if line.startswith('%vault'):
+                    try:
+                        from data_vault import VaultMagics
+                        from data_vault.actions import ImportAction, StoreAction
+                        from data_vault.parsing import split_variables
+                    except ImportError:
+                        warn('Could not deduce I/O from data-vault %vault magics: data_vault not installed')
+                        return
+                    vault_magics = VaultMagics()
+                    arguments = vault_magics.extract_arguments(line[7:])
+                    action = vault_magics.select_action(arguments)
+                    if isinstance(action, ImportAction):
+                        variables = arguments['import']
+                        for var_index, variable in enumerate(split_variables(variables)):
+                            self.inputs[(index, var_index)] = arguments['from'] + '/' + variable
+                        self.has_inputs = True
+                    elif isinstance(action, StoreAction):
+                        self.outputs[index] = arguments['in'] + '/' + arguments['store']
+                        self.has_outputs = True
+
+    def deduce_io_from_tags(self, io_tags={'inputs', 'outputs'}):
+        notebook_json = self.notebook_json
+        io_cells = {}
+
+        for index, cell in enumerate(notebook_json['cells']):
+            if 'tags' in cell['metadata']:
+                cell_io_tags = io_tags.intersection(cell['metadata']['tags'])
+                if cell_io_tags:
+                    assert len(cell_io_tags) == 1
+                    io_cells[list(cell_io_tags)[0]] = cell, index
+
+        for io, (cell, index) in io_cells.items():
+            assert not getattr(self, f'has_{io}')
+            source = ''.join(cell['source'])
+            if f'__{io}__' in source:
+                # print(cell['outputs'])
+                assert len(cell['outputs']) == 1
+                # TODO: search through lists
+                values = cell['outputs'][0]['metadata']
+            else:
+                # so we don't want to use eval (we are not within an isolated copy yet!),
+                # thus only simple regular expression matching which will fail on multi-line strings
+                # (and anything which is dynamically generated)
+                assignments = {
+                    match.group('key'): match.group('value')
+                    for match in re.finditer(r'^\s*(?P<key>.*?)\s*=\s*([\'"])(?P<value>.*)\2', source, re.MULTILINE)
+                }
+                values = {
+                    key: value
+                    for key, value in assignments.items()
+                    if key.isidentifier() and value
+                }
+                if len(assignments) != len(values):
+                    # TODO: add nice exception or warning
+                    raise
+            setattr(self, io, values)
+            setattr(self, f'has_{io}', True)
 
     def serialize(self, arguments_group):
         return '-p ' + (' -p '.join(
@@ -277,6 +312,8 @@ class NotebookRule(Rule):
     def run(self, use_cache=True, **kwargs) -> int:
         """
         Run JupyterNotebook using PaperMill and compare the output with reference using nbdime
+
+        Returns: status code from the papermill run (0 if successful)
         """
         notebook = self.notebook
         path = Path(notebook)

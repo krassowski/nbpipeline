@@ -37,3 +37,19 @@ def test_notebook_rule_parameters():
     reference = read_csv('tests/output.csv')
 
     assert (result == reference).all().all()
+    assert rule.outputs == {'output_file': result_path.as_posix()}
+
+
+def test_notebook_rule_data_vault():
+    rule = NotebookRule(
+        'Data vault I/O',
+        notebook='tests/Data_vault_io.ipynb'
+    )
+    assert rule.inputs == {
+        (2, 0): 'io/input_df',
+        (3, 0): 'io/a',
+        (3, 1): 'io/b'
+    }
+    assert rule.outputs == {
+        6: 'test_result/output_df'
+    }
