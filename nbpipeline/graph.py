@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List
 from warnings import warn
 
-from networkx import DiGraph
+from networkx import DiGraph, simple_cycles
 from pandas import DataFrame, read_csv, read_table, read_excel, read_html, read_json
 
 from .rules import Rule
@@ -115,6 +115,15 @@ class RulesGraph:
         are outputs of previously run tasks, or just inputs
         which do not depend on any other tasks)
         """
+
+        cycles = list(simple_cycles(self.graph))
+        if any(cycles):
+            for n in cycles[0]:
+                if hasattr(n, 'inputs'):
+                    print(n.inputs)
+                if hasattr(n, 'outputs'):
+                    print(n.outputs)
+            raise ValueError(f'Could not construct DAG: cycles detected: {cycles}')
 
         rules = {
             node
