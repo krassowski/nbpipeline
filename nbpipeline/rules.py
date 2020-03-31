@@ -224,7 +224,7 @@ class NotebookRule(Rule):
                     try:
                         from data_vault import VaultMagics
                         from data_vault.actions import ImportAction, StoreAction
-                        from data_vault.parsing import split_variables
+                        from data_vault.parsing import split_variables, unquote
                     except ImportError:
                         warn('Could not deduce I/O from data-vault %vault magics: data_vault not installed')
                         return
@@ -234,7 +234,10 @@ class NotebookRule(Rule):
                     if isinstance(action, ImportAction):
                         variables = arguments['import']
                         for var_index, variable in enumerate(split_variables(variables)):
-                            self.inputs[(index, var_index)] = arguments['from'] + '/' + variable
+                            if 'from' in arguments:
+                                self.inputs[(index, var_index)] = arguments['from'] + '/' + variable
+                            else:
+                                self.inputs[(index, var_index)] = unquote(arguments['import'])
                         self.has_inputs = True
                     elif isinstance(action, StoreAction):
                         self.outputs[index] = arguments['in'] + '/' + arguments['store']

@@ -48,7 +48,8 @@ def test_notebook_rule_data_vault():
     assert rule.inputs == {
         (2, 0): 'io/input_df',
         (3, 0): 'io/a',
-        (3, 1): 'io/b'
+        (3, 1): 'io/b',
+        (8, 0): 'io/input_df'
     }
     assert rule.outputs == {
         6: 'test_result/output_df'
