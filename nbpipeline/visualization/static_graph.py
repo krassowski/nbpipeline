@@ -11,14 +11,12 @@ def static_graph(rules_dag):
 
     with NamedTemporaryFile(suffix='.dot') as dot_file:
         graph.write(dot_file.name)
-
         graph.clear()
 
         with NamedTemporaryFile(mode='r', suffix='.svg') as temp_file:
             status = system(f'dot -Tsvg {dot_file.name} -o {temp_file.name}')
             assert status == 0
 
-            # with open(temp_file.name) as f:
             svg = temp_file.read()
             insert_after = 'xmlns:xlink="http://www.w3.org/1999/xlink">'
             processed = svg.replace(insert_after, insert_after + """
