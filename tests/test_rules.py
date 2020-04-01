@@ -138,10 +138,10 @@ def test_expand_run_magics():
         f.write(NOTEBOOK_TO_INCLUDE)
         f.flush()
         result = expand_run_magics(notebook_with_run_magic(f.name))
-        cells = result['cells']
-        assert len(cells) == 5
-        assert cells[0]['source'] == ["print('test0')"]
-        assert cells[1]['source'] == ["print('test1')\n"]
-        assert cells[2]['source'] == ["print('included')"]
-        assert cells[3]['source'] == ["print('test2')"]
-        assert cells[4]['source'] == ["print('test3')"]
+    cells = result['cells']
+    assert len(cells) == 5
+    assert cells[0]['source'] == ["print('test0')"]
+    assert cells[1]['source'] == ["print('test1')\n"]
+    assert cells[2]['source'] == ["print('included')"]
+    assert cells[3]['source'] == ["print('test2')"]
+    assert cells[4]['source'] == ["print('test3')"]
