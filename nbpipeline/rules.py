@@ -1,6 +1,7 @@
 import json
 import pickle
 import re
+from copy import copy
 from functools import lru_cache
 from os import system
 from abc import ABC, abstractmethod
@@ -161,6 +162,41 @@ class ShellRule(Rule):
         }
 
 
+def expand_run_magics(notebook):
+    out_notebook = copy(notebook)
+    new_cells = []
+
+    for cell in notebook['cells']:
+        if cell['cell_type'] != 'code':
+            new_cells.append(cell)
+            continue
+
+        if any(line.startswith('%run') for line in cell['source']):
+            other_code = []
+            for line in cell['source']:
+                if line.startswith('%run'):
+                    if other_code:
+                        split_cell = copy(cell)
+                        split_cell['source'] = other_code
+                        new_cells.append(split_cell)
+                        other_code = []
+                    to_include = line[5:].strip()
+                    with open(to_include) as o:
+                        nb_run = json.load(o)
+                    new_cells.extend(nb_run['cells'])
+                else:
+                    other_code.append(line)
+            if other_code:
+                split_cell = copy(cell)
+                split_cell['source'] = other_code
+                new_cells.append(split_cell)
+        else:
+            new_cells.append(cell)
+
+    out_notebook['cells'] = new_cells
+    return out_notebook
+
+
 class NotebookRule(Rule):
 
     cache_dir = '/tmp/nb_cache/'
@@ -308,7 +344,7 @@ class NotebookRule(Rule):
     @lru_cache()
     def notebook_json(self):
         with open(self.absolute_notebook_path) as f:
-            return json.load(f)
+            return expand_run_magics(json.load(f))
 
     def maybe_create_output_dirs(self):
         if self.has_outputs:
