@@ -45,6 +45,19 @@ def test_notebook_rule_parameters():
     assert rule.outputs == {'output_file': result_path.as_posix()}
 
 
+def test_notebook_rule_skip_execute():
+    rule = NotebookRule(
+        'Simple I/O (to be skipped)',
+        notebook='tests/Simple_input_output.ipynb',
+        input={'input_file': 'tests/input.csv'},
+        execute=False
+    )
+    with warns(UserWarning, match='Skipping'):
+        status_code = rule.run(use_cache=False)
+    assert status_code == 0
+    assert rule.execution_time is None
+
+
 def test_notebook_rule_data_vault():
     with warns(
         UserWarning,

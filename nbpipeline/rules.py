@@ -230,6 +230,7 @@ class NotebookRule(Rule):
         diff=True,
         deduce_io=True,
         deduce_io_from_data_vault=True,
+        execute=True,
         **kwargs
     ):
         """Rule for Jupyter Notebooks
@@ -242,6 +243,8 @@ class NotebookRule(Rule):
             diff: whether to generate diffs against the current state of the notebook
             deduce_io_from_data_vault: whether to deduce the inputs and outputs from `data_vault` magics
                 (`%vault store` and `%vault import`), see https://github.com/krassowski/data-vault
+            execute: if False, the notebook will note be run; useful to include final "leaf" notebooks
+                which may take too long to run, but are not essential to the overall results
         """
         super().__init__(*args, **kwargs)
         self.todos = []
@@ -254,6 +257,7 @@ class NotebookRule(Rule):
         self.images = []
         self.headers = []
         self.status = None
+        self.execute = execute
 
         from datetime import datetime, timedelta
         month_ago = (datetime.today() - timedelta(days=30)).timestamp()
@@ -435,16 +439,20 @@ class NotebookRule(Rule):
         # strip outputs (otherwise if it stops, the diff will be too optimistic)
         system(f'cat {self.absolute_notebook_path} | nbstripout > {stripped_nb}')
 
-        # execute
-        start_time = time.time()
-        status = system(f'papermill {stripped_nb} {output_nb} {self.serialized_arguments}') or 0
-        self.execution_time = time.time() - start_time
-        self.status = status
+        if self.execute:
+            # execute
+            start_time = time.time()
+            status = system(f'papermill {stripped_nb} {output_nb} {self.serialized_arguments}') or 0
+            self.execution_time = time.time() - start_time
+        else:
+            status = 0
+            warn(f'Skipping {self} (execute != True)')
 
-        # inject parameters to a "reference" copy (so that we do not have spurious noise in the diff)
-        system(f'papermill {self.absolute_notebook_path} {reference_nb} {self.serialized_arguments} --prepare-only')
+        if self.execute and self.generate_diff:
 
-        if self.generate_diff:
+            # inject parameters to a "reference" copy (so that we do not have spurious noise in the diff)
+            system(f'papermill {self.absolute_notebook_path} {reference_nb} {self.serialized_arguments} --prepare-only')
+
             with NamedTemporaryFile(delete=False) as tf:
                 command = f'nbdiff {reference_nb} {output_nb} --ignore-metadata --ignore-details --out {tf.name}'
                 run_command(command)
@@ -470,6 +478,9 @@ class NotebookRule(Rule):
                     key: getattr(self, key)
                     for key in to_cache
                 }, f)
+
+        self.status = status
+
         return status
 
     def to_json(self):
