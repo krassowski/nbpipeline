@@ -29,7 +29,10 @@ class Rule(ABC):
     - interactive graphs
     - implicit passing of arguments to the executing command 
     """
-    
+
+    cache_dir: Path
+    tmp_dir: Path
+    is_setup = False
     rules = {}
 
     def __init__(self, name, **kwargs):
@@ -79,9 +82,16 @@ class Rule(ABC):
             self.has_inputs = False
 
     @abstractmethod
-    def run(self, **kwargs) -> int:
-        pass
-    
+    def run(self, use_cache: bool) -> int:
+        if not self.is_setup:
+            raise ValueError('Please set up the rules class settings with Rule.setup() first!')
+
+    @classmethod
+    def setup(cls, cache_dir: Path, tmp_dir: Path):
+        cls.cache_dir = Path(cache_dir)
+        cls.tmp_dir = Path(tmp_dir)
+        cls.is_setup = True
+
     @abstractmethod
     def to_json(self):
         pass
@@ -147,7 +157,9 @@ class ShellRule(Rule):
             for arguments_group in self.arguments.values()
         })
 
-    def run(self, **kwargs) -> int:
+    def run(self, use_cache=False) -> int:
+        super().run(use_cache)
+
         start_time = time.time()
         status = system(f'{self.command} {self.serialized_arguments}')
         self.execution_time = time.time() - start_time
@@ -199,20 +211,26 @@ def expand_run_magics(notebook):
 
 class NotebookRule(Rule):
 
-    cache_dir = '/tmp/nb_cache/'
     options: None
+
+    @property
+    def output_nb_dir(self) -> Path:
+        return self.tmp_dir / 'out'
+
+    @property
+    def reference_nb_dir(self) -> Path:
+        return self.tmp_dir / 'ref'
+
+    @property
+    def stripped_nb_dir(self) -> Path:
+        return self.tmp_dir / 'stripped'
 
     def __init__(
         self, *args, notebook,
         diff=True,
         deduce_io=True,
         deduce_io_from_data_vault=True,
-        # TODO: make this configurable? ue only relative paths with respect to TemporaryDict?
-        # TODO: this has to be project dependent to avoid conflict caches!
         # TODO: moving the execution logic to a separate module might be a good idea
-        output_nb_dir='/tmp/nbpipeline/out',
-        reference_nb_store='/tmp/nbpipeline/ref/',
-        stripped_nb_dir='/tmp/nbpipeline/stripped/',
         **kwargs
     ):
         """Rule for Jupyter Notebooks
@@ -221,18 +239,16 @@ class NotebookRule(Rule):
             deduce_io: whether to automatically deduce inputs and outputs from the code cells tagged "inputs" and "outputs";
                 local variables defined in the cell will be evaluated and used as inputs or outputs.
                 If you want to generate paths with a helper function for brevity, assign a dict of {variable: path}
-                to __inputs__/__outputs__ in the tagged cell using io.create_paths() helper.
+                to `__inputs__`/`__outputs__` in the tagged cell using `io.create_paths()` helper.
             diff: whether to generate diffs against the current state of the notebook
-
+            deduce_io_from_data_vault: whether to deduce the inputs and outputs from `data_vault` magics
+                (`%vault store` and `%vault import`), see https://github.com/krassowski/data-vault
         """
         super().__init__(*args, **kwargs)
         self.todos = []
         self.notebook = notebook
         self.absolute_notebook_path = Path(notebook).absolute()
         self.generate_diff = diff
-        self.output_nb_dir = output_nb_dir
-        self.reference_nb_dir = reference_nb_store
-        self.stripped_nb_dir = stripped_nb_dir
         self.diff = None
         self.text_diff = None
         self.fidelity = None
@@ -355,22 +371,24 @@ class NotebookRule(Rule):
                     print(f'Creating path "{path}" for "{name}" output argument')
                     path.mkdir(parents=True, exist_ok=True)
 
-    def run(self, use_cache=True, **kwargs) -> int:
+    def run(self, use_cache=True) -> int:
         """
         Run JupyterNotebook using PaperMill and compare the output with reference using nbdime
 
         Returns: status code from the papermill run (0 if successful)
         """
+        super().run(use_cache)
+
         notebook = self.notebook
         path = Path(notebook)
 
-        output_nb_dir = Path(self.output_nb_dir) / path.parent
+        output_nb_dir = self.output_nb_dir / path.parent
         output_nb_dir.mkdir(parents=True, exist_ok=True)
 
-        reference_nb_dir = Path(self.reference_nb_dir) / path.parent
+        reference_nb_dir = self.reference_nb_dir / path.parent
         reference_nb_dir.mkdir(parents=True, exist_ok=True)
 
-        stripped_nb_dir = Path(self.stripped_nb_dir) / path.parent
+        stripped_nb_dir = self.stripped_nb_dir / path.parent
         stripped_nb_dir.mkdir(parents=True, exist_ok=True)
 
         output_nb = output_nb_dir / path.name
@@ -379,7 +397,7 @@ class NotebookRule(Rule):
 
         md5 = run_command(f'md5sum {str(self.absolute_notebook_path)}').split()[0]
 
-        cache_dir = Path(self.cache_dir) / path.parent
+        cache_dir = self.cache_dir / path.parent
         cache_dir.mkdir(parents=True, exist_ok=True)
 
         cache_nb_file = cache_dir / f'{md5}.json'

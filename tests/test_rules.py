@@ -1,10 +1,13 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from _pytest.recwarn import warns
+from pytest import warns
 from pandas import read_csv
 
-from nbpipeline.rules import NotebookRule, expand_run_magics
+from nbpipeline.nbpipeline import Pipeline
+from nbpipeline.rules import NotebookRule, expand_run_magics, Rule
+
+Rule.setup(cache_dir=Pipeline.cache_dir.default, tmp_dir=Pipeline.tmp_dir.default)
 
 
 def test_notebook_rule_fail():

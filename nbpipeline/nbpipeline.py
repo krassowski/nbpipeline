@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+import os
 from argparse import FileType
+from contextlib import ExitStack
 from os import system
 from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path
+from tempfile import gettempdir
 
 from declarative_parser import Argument
 from declarative_parser.constructor_parser import ConstructorParser
@@ -51,12 +54,12 @@ class Pipeline:
     graph_width = Argument(
         type=int,
         short='w',
-        default=int(1920/2)
+        default=int(1920 / 2)
     )
 
     graph_height = Argument(
         type=int,
-        default=int(1050/2)
+        default=int(1050 / 2)
     )
 
     just_plot_the_last_graph = Argument(
@@ -86,6 +89,16 @@ class Pipeline:
         short='d'
     )
 
+    cache_dir = Argument(
+        type=str,
+        default='.nbpipeline_cache'
+    )
+
+    tmp_dir = Argument(
+        type=str,
+        default=os.path.join(gettempdir(), 'nbpipeline', Path.cwd().name)
+    )
+
     # TODO:
     # output_dir = Argument(
     #     type=str,
@@ -96,7 +109,7 @@ class Pipeline:
     # - prefix everything (input and outputs) with 'output_dir'
     # - we would need to detect inputs with symlinks used in outputs and raise in such cases
     #   so that the user would not loose precious input data by accident (but give an option to disable)
-    # simple change of cwd does not work as we python can no longer resolve modules
+    # simple change of cwd does not work as python can no longer resolve modules
 
     do_not_make_output_dirs = Argument(
         action='store_false',
@@ -146,6 +159,11 @@ class Pipeline:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+        self.tmp_dir = Path(self.tmp_dir)
+        self.cache_dir = Path(self.cache_dir)
+
+        Rule.setup(tmp_dir=self.tmp_dir, cache_dir=self.cache_dir)
+
         # execute the pipeline definitions (loads them into Rule.rules)
         load_module(self.definitions_file.name)
 
@@ -170,11 +188,12 @@ class Pipeline:
                 else:
                     if not self.do_not_make_output_dirs and hasattr(node, 'maybe_create_output_dirs'):
                         node.maybe_create_output_dirs()
-                    if self.run_from_root or not hasattr(node, 'notebook'):
+                    with ExitStack() as stack:
+                        if not self.run_from_root and hasattr(node, 'notebook'):
+                            stack.enter_context(cd(Path(node.notebook).parent))
+
                         status = node.run(use_cache=not self.disable_cache)
-                    else:
-                        with cd(Path(node.notebook).parent):
-                            status = node.run(use_cache=not self.disable_cache)
+
                     if status != 0:
                         all_success = False
 
@@ -182,10 +201,10 @@ class Pipeline:
 
         if self.interactive_graph:
             # TODO add an option to create standalone files by inlining all the css and js dependencies
-            self.export_interactive_graph(dag, path='/tmp/graph.html')
+            self.export_interactive_graph(dag, path=str(self.tmp_dir / 'graph.html'))
 
         if self.static_graph:
-            self.export_svg(dag, path='/tmp/graph.svg')
+            self.export_svg(dag, path=str(self.tmp_dir / 'graph.svg'))
 
         self.status = 0 if all_success else 1
 
