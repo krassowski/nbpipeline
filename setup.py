@@ -20,7 +20,7 @@ if __name__ == '__main__':
         name='nbpipeline',
         packages=find_packages(),
         scripts=['bin/nbpipeline'],
-        version='0.2.1',
+        version='0.2.2',
         license='MIT',
         package_data={'nbpipeline': ['visualization/templates/*', 'visualization/templates/static/*']},
         include_package_data=True,

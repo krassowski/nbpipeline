@@ -230,7 +230,6 @@ class NotebookRule(Rule):
         diff=True,
         deduce_io=True,
         deduce_io_from_data_vault=True,
-        # TODO: moving the execution logic to a separate module might be a good idea
         **kwargs
     ):
         """Rule for Jupyter Notebooks
@@ -317,7 +316,6 @@ class NotebookRule(Rule):
             assert not getattr(self, f'has_{io}')
             source = ''.join(cell['source'])
             if f'__{io}__' in source:
-                # print(cell['outputs'])
                 assert len(cell['outputs']) == 1
                 # TODO: search through lists
                 values = cell['outputs'][0]['metadata']
@@ -524,22 +522,3 @@ class NotebookRule(Rule):
                 </table>>"""
             }
         }
-
-
-"""
-maybe something nested like
-
-class Group:
-    pass
-
-class GroupSharingDirectory(Group):
-    pass
-
-GroupSharingDirectory(
-    name='analyses',
-    members=[
-        NotebookRule(),
-        NotebookRule(),
-    ]
-)
-"""
