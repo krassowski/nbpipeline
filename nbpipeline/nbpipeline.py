@@ -164,6 +164,9 @@ class Pipeline:
 
         Rule.setup(tmp_dir=self.tmp_dir, cache_dir=self.cache_dir)
 
+        self.tmp_dir.mkdir(exist_ok=True, parents=True)
+        self.cache_dir.mkdir(exist_ok=True, parents=True)
+
         # execute the pipeline definitions (loads them into Rule.rules)
         load_module(self.definitions_file.name)
 
@@ -175,6 +178,7 @@ class Pipeline:
 
         graph = RulesGraph(rules)
         # TODO
+
         # Path(self.output_dir).mkdir(exist_ok=True, parents=True)
 
         all_success = True
