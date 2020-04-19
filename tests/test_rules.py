@@ -31,8 +31,11 @@ def test_notebook_rule_parameters():
         'Simple I/O',
         notebook='tests/Simple_input_output.ipynb',
         input={'input_file': 'tests/input.csv'},
-        output={'output_file': result_path.as_posix()}
+        output={'output_file': result_path.as_posix()},
+        parameters={}
     )
+    assert str(rule) == "<NotebookRule 'Simple I/O' with 1 inputs and 1 outputs>"
+
     status_code = rule.run(use_cache=False)
     assert status_code == 0
 
@@ -52,6 +55,8 @@ def test_notebook_rule_skip_execute():
         input={'input_file': 'tests/input.csv'},
         execute=False
     )
+    assert str(rule) == "<NotebookRule 'Simple I/O (to be skipped)' with 1 inputs>"
+
     with warns(UserWarning, match='Skipping'):
         status_code = rule.run(use_cache=False)
     assert status_code == 0
@@ -67,6 +72,7 @@ def test_notebook_rule_data_vault():
             'Data vault I/O',
             notebook='tests/Data_vault_io.ipynb'
         )
+        assert str(rule) == "<NotebookRule 'Data vault I/O' with 4 inputs and 1 outputs>"
     assert rule.inputs == {
         (2, 0): 'io/input_df',
         (3, 0): 'io/a',

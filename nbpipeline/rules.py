@@ -48,38 +48,43 @@ class Rule(ABC):
                     input={'name': "1"}
                 would result in
                     --name "1"
-                You can force string to be displayed without qoutes usingL
+                You can force string to be displayed without quotes using:
                     input={'name': no_quotes("1")}
         """
         assert name not in self.rules
         self.name = name
         self.execution_time = None
         self.rules[name] = self
-        extra_kwargs = set(kwargs) - {'output', 'input', 'group'}
+        extra_kwargs = set(kwargs) - {'output', 'input', 'group', 'parameters'}
         if extra_kwargs:
             raise Exception(f'Unrecognized keyword arguments to {self.__class__.__name__}: {extra_kwargs}')
         self.arguments = subset_dict_preserving_order(
             kwargs,
-            {'input', 'output'}
+            {'input', 'output', 'parameters'}
         )
 
         self.group = kwargs.get('group', None)
         self.outputs = {}
         self.inputs = {}
+        self.parameters = {}
 
         if 'output' in kwargs:
-            self.has_outputs = True
             output = kwargs['output']
             # todo support lists of positionals
             self.outputs = output if isinstance(output, dict) else {'': output}
-        else:
-            self.has_outputs = False
         if 'input' in kwargs:
-            self.has_inputs = True
             input = kwargs['input']
-            self.inputs = input if isinstance(input, dict) else {'': input} 
-        else:
-            self.has_inputs = False
+            self.inputs = input if isinstance(input, dict) else {'': input}
+        if 'parameters' in kwargs:
+            self.parameters = kwargs['parameters']
+
+    @property
+    def has_inputs(self):
+        return len(self.inputs) != 0
+
+    @property
+    def has_outputs(self):
+        return len(self.outputs) != 0
 
     @abstractmethod
     def run(self, use_cache: bool) -> int:
@@ -100,10 +105,12 @@ class Rule(ABC):
         fragments = [repr(self.name)]
         if self.group:
             fragments.append(f'({self.group})')
-        if self.has_inputs or self.has_inputs:
+        if self.has_inputs or self.has_outputs:
             fragments.append('with')
         if self.has_inputs:
             fragments.append(f'{len(self.inputs)} inputs')
+        if self.has_inputs and self.has_outputs:
+            fragments.append('and')
         if self.has_outputs:
             fragments.append(f'{len(self.outputs)} outputs')
         fragments = ' '.join(fragments)
@@ -298,11 +305,9 @@ class NotebookRule(Rule):
                                 warn(f'Skipping {line} which was previously stored from this notebook to avoid cycles')
                             else:
                                 self.inputs[(index, var_index)] = import_path
-                        self.has_inputs = True
                     elif isinstance(action, StoreAction):
                         store_path = arguments['in'] + '/' + arguments['store']
                         self.outputs[index] = store_path
-                        self.has_outputs = True
                         stored.add(store_path)
 
     def deduce_io_from_tags(self, io_tags={'inputs', 'outputs'}):
@@ -353,6 +358,7 @@ class NotebookRule(Rule):
         return ' '.join({
             self.serialize(arguments_group)
             for arguments_group in self.arguments.values()
+            if arguments_group
         })
 
     def outline(self, max_depth=3):
