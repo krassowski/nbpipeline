@@ -345,7 +345,6 @@ class NotebookRule(Rule):
                     # TODO: add nice exception or warning
                     raise
             setattr(self, io, values)
-            setattr(self, f'has_{io}', True)
 
     def serialize(self, arguments_group):
         return '-p ' + (' -p '.join(
