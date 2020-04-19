@@ -414,7 +414,7 @@ class NotebookRule(Rule):
         if use_cache and cache_nb_file.exists():
             with open(cache_nb_file, 'rb') as f:
                 pickled = pickle.load(f)
-                print('Reusing cached results:')
+                print(f'Reusing cached results for {self}')
                 for key in to_cache:
                     setattr(self, key, pickled[key])
                 return 0
@@ -456,7 +456,11 @@ class NotebookRule(Rule):
         if self.execute and self.generate_diff:
 
             # inject parameters to a "reference" copy (so that we do not have spurious noise in the diff)
-            system(f'papermill {self.absolute_notebook_path} {reference_nb} {self.serialized_arguments} --prepare-only')
+            system(
+                f'papermill {self.absolute_notebook_path} {reference_nb} {self.serialized_arguments} --prepare-only'
+                # do not print "Input Notebook:" and "Output Notebook:" for the second time
+                ' --log-level WARNING'
+            )
 
             with NamedTemporaryFile(delete=False) as tf:
                 command = f'nbdiff {reference_nb} {output_nb} --ignore-metadata --ignore-details --out {tf.name}'

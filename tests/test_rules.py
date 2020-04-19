@@ -21,7 +21,7 @@ def test_notebook_rule_fail():
     assert status_code != 0
 
 
-def test_notebook_rule_parameters():
+def test_notebook_rule_parameters(capsys):
     result_path = Path('tests/test_output.csv')
     if result_path.exists():
         result_path.unlink()
@@ -46,6 +46,13 @@ def test_notebook_rule_parameters():
 
     assert (result == reference).all().all()
     assert rule.outputs == {'output_file': result_path.as_posix()}
+
+    # test cache:
+    _ = capsys.readouterr()
+    status_code = rule.run(use_cache=True)
+    captured = capsys.readouterr()
+    assert status_code == 0
+    assert f'Reusing cached results for {rule}' in captured.out
 
 
 def test_notebook_rule_skip_execute():
