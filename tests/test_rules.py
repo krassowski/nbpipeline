@@ -6,6 +6,7 @@ from pandas import read_csv
 
 from nbpipeline.nbpipeline import Pipeline
 from nbpipeline.rules import NotebookRule, expand_run_magics, Rule
+from nbpipeline.version_control.git import deduce_web_url
 
 Rule.setup(cache_dir=Pipeline.cache_dir.default, tmp_dir=Pipeline.tmp_dir.default)
 
@@ -174,3 +175,8 @@ def test_expand_run_magics():
     assert cells[2]['source'] == ["print('included')"]
     assert cells[3]['source'] == ["print('test2')"]
     assert cells[4]['source'] == ["print('test3')"]
+
+
+def test_repository_url():
+    assert deduce_web_url('git@github.com:krassowski/nbpipeline.git') == 'https://github.com/krassowski/nbpipeline'
+    assert deduce_web_url('https://github.com/krassowski/nbpipeline.git') == 'https://github.com/krassowski/nbpipeline'
