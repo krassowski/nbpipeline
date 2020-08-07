@@ -30,7 +30,7 @@ To install the latest development version you may use:
 git clone https://github.com/krassowski/nbpipeline
 cd nbpipeline
 pip install -r requirements.txt
-ln -s $(pwd)/nbpipeline/nbpipeline.py ~/bin/nbpipeline
+ln -s $(pwd)/bin/nbpipeline-dev ~/bin/nbpipeline
 ```
 
 ### Quickstart
