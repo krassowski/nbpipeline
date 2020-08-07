@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, Path(__file__).parent.parent.absolute().as_posix())
+sys.path.insert(0, Path(__file__).resolve().parent.parent.absolute().as_posix())
 from nbpipeline.nbpipeline import main
 
 sys.exit(main())
