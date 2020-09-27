@@ -121,11 +121,21 @@ class Group:
     """A group of rules"""
     groups = {}
 
-    def __init__(self, name, color='#cccccc'):
+    def __init__(self, id: str, name: str, color='#cccccc', parent=None):
         assert name not in self.groups
         self.name = name
+        self.id = id
         self.color = color
-        self.groups[name] = self
+        self.groups[id] = self
+        self.parent = parent
+
+    def to_json(self):
+        return {
+            'label': self.name,
+            'id': self.id,
+            'color': self.color,
+            'parent': self.parent
+        }
 
 
 class ShellRule(Rule):
@@ -512,7 +522,8 @@ class NotebookRule(Rule):
             'label': self.notebook,
             'headers': self.headers,
             'status': self.status,
-            'todos': self.todos
+            'todos': self.todos,
+            'group': self.group
         }
 
     def to_graphiz(self):
