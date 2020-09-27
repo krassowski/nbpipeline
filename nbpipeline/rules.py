@@ -480,9 +480,7 @@ class NotebookRule(Rule):
                     try:
                         self.diff = json.load(f)
                     except JSONDecodeError as e:
-                        print(result)
-                        print(f.readlines())
-                        raise e
+                        warn(f'Could not load the diff file: {result}, {f.readlines()}')
 
             command = f'nbdiff {reference_nb} {output_nb} --ignore-metadata --ignore-details --no-use-diff --no-git'
             self.text_diff = run_command(command)
