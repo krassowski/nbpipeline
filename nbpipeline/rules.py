@@ -3,6 +3,7 @@ import pickle
 import re
 from copy import copy
 from functools import lru_cache
+from json import JSONDecodeError
 from os import system
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -474,9 +475,14 @@ class NotebookRule(Rule):
 
             with NamedTemporaryFile(delete=False) as tf:
                 command = f'nbdiff {reference_nb} {output_nb} --ignore-metadata --ignore-details --out {tf.name}'
-                run_command(command)
+                result = run_command(command)
                 with open(tf.name) as f:
-                    self.diff = json.load(f)
+                    try:
+                        self.diff = json.load(f)
+                    except JSONDecodeError as e:
+                        print(result)
+                        print(f.readlines())
+                        raise e
 
             command = f'nbdiff {reference_nb} {output_nb} --ignore-metadata --ignore-details --no-use-diff --no-git'
             self.text_diff = run_command(command)
