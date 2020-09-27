@@ -29,6 +29,7 @@ class ArgumentNode(Node):
             'type': 'argument',
             'label': self.name,
             'id': self.name.replace('/', '_'),
+            'group': self.group
         }
 
 
@@ -189,17 +190,3 @@ class RulesGraph:
         assert not rules
 
         return sort
-
-
-class Cluster(object):
-
-    def __init__(self, related_group=None):
-        self.group = related_group
-        self.members = set()
-
-    def to_json(self):
-        return {
-            'name': self.group.name,
-            'members': list(self.members),
-            'color': self.group.color
-        }

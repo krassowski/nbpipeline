@@ -1,10 +1,8 @@
 import json
-from collections import defaultdict
 from pathlib import Path
 
 from jinja2 import Environment, select_autoescape, FileSystemLoader
 
-from ..graph import Cluster
 from ..rules import Group
 
 
@@ -18,26 +16,7 @@ def render_template(path, **kwargs):
     return template.render(**kwargs)
 
 
-def assign_to_clusters(rules_dag):
-    groups = defaultdict(Cluster)
-
-    for node in rules_dag.nodes:
-        if not node.group:
-            continue
-        groups[node.group].members.add(node.name)
-
-    return groups
-
-
 def generate_graph(rules_dag, **kwargs):
-
-    groups = assign_to_clusters(rules_dag)
-
-    for name, cluster in groups.items():
-        if name in Group.groups:
-            cluster.group = Group.groups[name]
-        else:
-            cluster.group = Group(name)
 
     json_dag = json.dumps({
         'nodes': [
@@ -50,7 +29,7 @@ def generate_graph(rules_dag, **kwargs):
         ],
         'clusters': [
             cluster.to_json()
-            for cluster in groups.values()
+            for cluster in Group.groups.values()
         ]
     })
 
