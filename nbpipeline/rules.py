@@ -4,10 +4,11 @@ import re
 from copy import copy
 from functools import lru_cache
 from json import JSONDecodeError
-from os import system
+from os import system, walk, sep
 from abc import ABC, abstractmethod
 from pathlib import Path
 import time
+from subprocess import check_output
 from tempfile import NamedTemporaryFile
 from warnings import warn
 
@@ -557,3 +558,41 @@ class NotebookRule(Rule):
                 </table>>"""
             }
         }
+
+
+def discover_notebooks(ignored_dirs=None, only_tracked_in_git=False):
+    """Useful when working with data-vault"""
+    ignored_dirs = ignored_dirs or set()
+    names = {}
+    rules = []
+
+    from typing import Dict
+    groups: Dict[str, Group] = {}
+
+    for dirpath, _, files in walk('.'):
+        dirs = dirpath.split(sep)[1:]
+        if any(dir.startswith('.') or dir in ignored_dirs for dir in dirs):
+            continue
+        for file in files:
+            if file.startswith('__') or file.startswith('.'):
+                continue
+            if not file.endswith('.ipynb'):
+                continue
+            if only_tracked_in_git and not check_output(f'git ls-files {file}', shell=True):
+                continue
+            path = sep.join(dirs + [file])
+            name = file[:-6]
+            name = name[0] + name[1:].replace('_', ' ')
+            if name in names:
+                print(name, 'already registered', path, names[name])
+            else:
+                names[name] = path
+                group_id = sep.join(dirs) if dirs else None
+                rule = NotebookRule(name, notebook=path, group=group_id)
+                rules.append(rule)
+                if group_id and group_id not in groups:
+                    groups[group_id] = Group(id=group_id, name=dirs[-1], parent=sep.join(dirs[:-1]))
+    return {
+        'rules': rules,
+        'groups': groups
+    }
