@@ -543,13 +543,14 @@ class NotebookRule(Rule):
             # 'is_tracked': is_tracked_in_version_control(self.notebook)
         }
 
-    def to_graphiz(self):
+    def to_graphiz(self, changes=False):
         data = self.to_json()
 
         # TODO: move to static_graph
-        buttons = [
-            f'<td href="{self.repository_url}/commits/master/{self.notebook}">{self.changes} changes this month</td>'
-        ]
+        buttons = []
+
+        if changes:   # TODO allow to activate
+            buttons += [f'<td href="{self.repository_url}/commits/master/{self.notebook}">{self.changes} changes this month</td>']
 
         if self.fidelity is not None:
             buttons += [f'<td href="">Reproducibility: {self.fidelity:.2f}%</td>']
