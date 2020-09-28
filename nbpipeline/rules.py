@@ -455,7 +455,12 @@ class NotebookRule(Rule):
                     self.todos.append(line)
 
         # strip outputs (otherwise if it stops, the diff will be too optimistic)
-        system(f'cat {self.absolute_notebook_path} | nbstripout > {stripped_nb}')
+        notebook_stripped = deepcopy(notebook_json)
+        for cell in notebook_json['cells']:
+            cell['outputs'] = []
+
+        with open(stripped_nb, 'w') as f:
+            json.dump(notebook_stripped, f)
 
         if self.execute:
             # execute

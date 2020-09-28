@@ -48,7 +48,6 @@ pandas
 nbimporter
 papermill
 pygraphviz
-nbstripout
 jupyter
 ansi2html
 networkx
