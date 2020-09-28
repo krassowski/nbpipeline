@@ -182,3 +182,4 @@ def test_expand_run_magics():
 def test_repository_url():
     assert deduce_web_url('git@github.com:krassowski/nbpipeline.git') == 'https://github.com/krassowski/nbpipeline'
     assert deduce_web_url('https://github.com/krassowski/nbpipeline.git') == 'https://github.com/krassowski/nbpipeline'
+    assert deduce_web_url('ssh://git@github.com/krassowski/nbpipeline') == 'https://github.com/krassowski/nbpipeline'

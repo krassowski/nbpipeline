@@ -6,11 +6,14 @@ def deduce_web_url(repo_url: str):
         repo_url = repo_url[:-4]
     if repo_url.startswith('http'):
         return repo_url
+    if repo_url.startswith('ssh://'):
+        repo_url = repo_url[6:]
     git, uri = repo_url.split('@')
-    domain, path = uri.split(':')
-    if domain == 'github.com':
-        return 'https://github.com/' + path
-    return path
+    if ':' in uri:
+        domain, path = uri.split(':')
+        return f'https://{domain}/{path}'
+    else:
+        return f'https://{uri}'
 
 
 def infer_repository_url():
