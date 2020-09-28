@@ -559,15 +559,14 @@ class NotebookRule(Rule):
             buttons += [f'<td>Runtime: {nice_time(self.execution_time)}</td>']
 
         buttons_html = '\n'.join(buttons)
+        if buttons_html:
+            buttons_html = f'<tr>{ buttons_html }</tr>'
         return {
             **data,
             **{
                 'shape': 'plain',
                 'label': f"""<<table cellspacing="0">
                 <tr><td href="{self.repository_url}/blob/master/{self.notebook}" colspan="{len(buttons)}" title="{data['notebook_name']}">{self.name.replace('&', ' and ')}</td></tr>
-                <tr>
-                    { buttons_html }
-                </tr>
                 </table>>"""
             }
         }
