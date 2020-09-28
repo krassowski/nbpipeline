@@ -566,9 +566,10 @@ class NotebookRule(Rule):
         }
 
 
-def discover_notebooks(ignored_dirs=None, only_tracked_in_git=False):
-    """Useful when working with data-vault"""
+def discover_notebooks(ignore=None, ignored_dirs=None, only_tracked_in_git=False, ignore_prefixes=('__', '.')):
+    """Useful when working with input/output auto-detection"""
     ignored_dirs = ignored_dirs or set()
+    ignore = ignore or set()
     names = {}
     rules = []
 
@@ -580,13 +581,15 @@ def discover_notebooks(ignored_dirs=None, only_tracked_in_git=False):
         if any(dir.startswith('.') or dir in ignored_dirs for dir in dirs):
             continue
         for file in files:
-            if file.startswith('__') or file.startswith('.'):
+            if any(file.startswith(prefix) for prefix in ignore_prefixes):
                 continue
             if not file.endswith('.ipynb'):
                 continue
             if only_tracked_in_git and not check_output(f'git ls-files {file}', shell=True):
                 continue
             path = sep.join(dirs + [file])
+            if path in ignore:
+                continue
             name = file[:-6]
             name = name[0] + name[1:].replace('_', ' ')
             if name in names:
