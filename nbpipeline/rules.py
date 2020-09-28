@@ -539,6 +539,8 @@ class NotebookRule(Rule):
             'status': self.status,
             'todos': self.todos,
             'group': self.group
+            # TODO: requires testing
+            # 'is_tracked': is_tracked_in_version_control(self.notebook)
         }
 
     def to_graphiz(self):
@@ -570,6 +572,10 @@ class NotebookRule(Rule):
         }
 
 
+def is_tracked_in_version_control(file: str):
+    return check_output(f'git ls-files {file}', shell=True)
+
+
 def discover_notebooks(ignore=None, ignored_dirs=None, only_tracked_in_git=False, ignore_prefixes=('__', '.')):
     """Useful when working with input/output auto-detection"""
     ignored_dirs = ignored_dirs or set()
@@ -589,7 +595,7 @@ def discover_notebooks(ignore=None, ignored_dirs=None, only_tracked_in_git=False
                 continue
             if not file.endswith('.ipynb'):
                 continue
-            if only_tracked_in_git and not check_output(f'git ls-files {file}', shell=True):
+            if only_tracked_in_git and not is_tracked_in_version_control(file):
                 continue
             path = sep.join(dirs + [file])
             if path in ignore:
