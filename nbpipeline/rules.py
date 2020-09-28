@@ -318,7 +318,11 @@ class NotebookRule(Rule):
                             else:
                                 self.inputs[(index, var_index)] = import_path
                     elif isinstance(action, StoreAction):
-                        for var_index, variable in enumerate(split_variables(arguments['store'])):
+                        variables = split_variables(arguments['store'])
+                        if 'as' in arguments:
+                            assert len(variables) == 1
+                            variables = [arguments['as']]
+                        for var_index, variable in enumerate(variables):
                             store_path = arguments['in'] + '/' + variable
                             self.outputs[(index, var_index)] = store_path
                             stored.add(store_path)
