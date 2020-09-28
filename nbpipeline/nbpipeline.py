@@ -48,7 +48,18 @@ class Pipeline:
 
     static_graph = Argument(
         action='store_true',
+        help='Should the static graph be displayed?',
         short='s'
+    )
+    
+    static_graph_options = Argument(
+        default='{"graph": {"rankdir": "LR"}}',
+        help=(
+            'JSON structure with dot language attributes for the static graph.'
+            '\nThree top-level keys are supported: graph, node and edge.'
+            '\nfor the list of attributes see https://graphviz.org/doc/info/attrs.html'
+        ),
+        short='S'
     )
 
     graph_width = Argument(
@@ -134,9 +145,9 @@ class Pipeline:
             browser += path
         system(browser)
 
-    def export_svg(self, rules_dag, path):
+    def export_svg(self, rules_dag, path, options):
 
-        graph_svg = static_graph(rules_dag)
+        graph_svg = static_graph(rules_dag, options)
 
         with open(path, 'w') as f:
             f.write(graph_svg)
@@ -208,7 +219,7 @@ class Pipeline:
             self.export_interactive_graph(dag, path=str(self.tmp_dir / 'graph.html'))
 
         if self.static_graph:
-            self.export_svg(dag, path=str(self.tmp_dir / 'graph.svg'))
+            self.export_svg(dag, path=str(self.tmp_dir / 'graph.svg'), options=self.static_graph_options)
 
         self.status = 0 if all_success else 1
 

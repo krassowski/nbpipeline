@@ -1,13 +1,30 @@
 from os import system
 from tempfile import NamedTemporaryFile
+import json
+from warnings import warn
 
 
-def static_graph(rules_dag):
+def static_graph(rules_dag, options='{}'):
     from networkx.drawing.nx_agraph import to_agraph
 
     graph = to_agraph(rules_dag)
     graph.node_attr['fontname'] = 'Arial, sans-serf'
     graph.edge_attr['fontname'] = 'Arial, sans-serf'
+
+    options = json.loads(options)
+    top_level_keys = {
+        'node': 'node_attr',
+        'edge': 'edge_attr',
+        'graph': 'graph_attr'
+    }
+
+    for key, items in options.items():
+        if key not in top_level_keys:
+            warn(f'Unknown static plot top-level key: {key}')
+        else:
+            attributes = getattr(graph, top_level_keys[key])
+            for attr, value in items.items():
+                attributes[attr] = value
 
     with NamedTemporaryFile(suffix='.dot') as dot_file:
         graph.write(dot_file.name)
@@ -22,7 +39,7 @@ def static_graph(rules_dag):
             processed = svg.replace(insert_after, insert_after + """
                 <style>
                 a:hover polygon {
-                    fill: red;
+                    fill: yellow;
                 }
                 </style>
             """)
