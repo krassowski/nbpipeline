@@ -80,7 +80,7 @@ def test_notebook_rule_data_vault():
             'Data vault I/O',
             notebook='tests/Data_vault_io.ipynb'
         )
-        assert str(rule) == "<NotebookRule 'Data vault I/O' with 4 inputs and 1 outputs>"
+        assert str(rule) == "<NotebookRule 'Data vault I/O' with 4 inputs and 3 outputs>"
     assert rule.inputs == {
         (2, 0): 'io/input_df',
         (3, 0): 'io/a',
@@ -88,7 +88,9 @@ def test_notebook_rule_data_vault():
         (8, 0): 'io/input_df'
     }
     assert rule.outputs == {
-        6: 'test_result/output_df'
+        (6, 0): 'test_result/output_df',
+        (12, 0): 'test_result/a',
+        (12, 1): 'test_result/b'
     }
 
 

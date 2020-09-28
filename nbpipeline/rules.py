@@ -1,7 +1,7 @@
 import json
 import pickle
 import re
-from copy import copy
+from copy import copy, deepcopy
 from functools import lru_cache
 from json import JSONDecodeError
 from os import system, walk, sep
@@ -318,9 +318,10 @@ class NotebookRule(Rule):
                             else:
                                 self.inputs[(index, var_index)] = import_path
                     elif isinstance(action, StoreAction):
-                        store_path = arguments['in'] + '/' + arguments['store']
-                        self.outputs[index] = store_path
-                        stored.add(store_path)
+                        for var_index, variable in enumerate(split_variables(arguments['store'])):
+                            store_path = arguments['in'] + '/' + variable
+                            self.outputs[(index, var_index)] = store_path
+                            stored.add(store_path)
 
     def deduce_io_from_tags(self, io_tags={'inputs', 'outputs'}):
         notebook_json = self.notebook_json
