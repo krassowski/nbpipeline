@@ -557,7 +557,7 @@ class NotebookRule(Rule):
             **{
                 'shape': 'plain',
                 'label': f"""<<table cellspacing="0">
-                <tr><td href="{self.repository_url}/blob/master/{self.notebook}" colspan="{len(buttons)}">{self.name.replace('&', ' and ')} - {data['notebook_name']}</td></tr>
+                <tr><td href="{self.repository_url}/blob/master/{self.notebook}" colspan="{len(buttons)}" title="{data['notebook_name']}">{self.name.replace('&', ' and ')}</td></tr>
                 <tr>
                     { buttons_html }
                 </tr>

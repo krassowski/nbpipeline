@@ -24,10 +24,17 @@ class Node:
 class ArgumentNode(Node):
 
     def to_json(self):
+        label_parts = self.name.split('/')
+
         return {
             'name': self.name,
             'type': 'argument',
-            'label': self.name,
+            'label': '<' + '\n<br/>'.join(
+                [f'<font color="grey">{part}</font>' for part in label_parts[:-1]]
+                +
+                [f'<font color="black">{label_parts[-1]}</font>']
+            ) + '>',
+            'shape': 'folder',
             'id': self.name.replace('/', '_'),
             'group': self.group
         }
