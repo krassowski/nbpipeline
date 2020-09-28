@@ -7,7 +7,7 @@ python:
   - 3.7
 
 install:
-  - python3 setup.py install
+  - pip install .
   - pip install -r tests/requirements.txt
   - pip install -r examples/requirements.txt
 

@@ -24,7 +24,7 @@ if __name__ == '__main__':
         license='MIT',
         package_data={'nbpipeline': ['visualization/templates/*', 'visualization/templates/static/*']},
         include_package_data=True,
-        description='Snakemake-like pipeline manager for reproducible Jupyter Notebooks',
+        description='Pipeline manager for reproducible Jupyter Notebooks',
         long_description=get_long_description('README.md'),
         author='Michal Krassowski',
         author_email='krassowski.michal+pypi@gmail.com',
