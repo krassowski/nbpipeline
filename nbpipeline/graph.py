@@ -1,4 +1,5 @@
 from functools import partial
+from itertools import zip_longest
 from pathlib import Path
 from typing import List
 from warnings import warn
@@ -21,10 +22,24 @@ class Node:
         return f'<{self.__class__.__name__} {name}>'
 
 
+def grouper(iterable, n, fillvalue=None):
+    """Collect data into fixed-length chunks or blocks
+
+    https://docs.python.org/3.8/library/itertools.html"""
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
+    args = [iter(iterable)] * n
+    return zip_longest(*args, fillvalue=fillvalue)
+
+
 class ArgumentNode(Node):
 
     def to_json(self):
         label_parts = self.name.split('/')
+        final_part = []
+
+        for group in grouper(label_parts[-1].split('_'), 4):
+            final_part.append(' '.join([g for g in group if g]))
+        final_part = '<br/>'.join(final_part)
 
         return {
             'name': self.name,
@@ -32,7 +47,7 @@ class ArgumentNode(Node):
             'label': '<' + '\n<br/>'.join(
                 [f'<font color="grey">{part}</font>' for part in label_parts[:-1]]
                 +
-                [f'<font color="black">{label_parts[-1]}</font>']
+                [f'<font color="black">{final_part}</font>']
             ) + '>',
             'shape': 'folder',
             'id': self.name.replace('/', '_'),
