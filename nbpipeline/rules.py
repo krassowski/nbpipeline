@@ -576,7 +576,7 @@ def is_tracked_in_version_control(file: str):
     return check_output(f'git ls-files {file}', shell=True)
 
 
-def discover_notebooks(ignore=None, ignored_dirs=None, only_tracked_in_git=False, ignore_prefixes=('__', '.')):
+def discover_notebooks(root_path='.', ignore=None, ignored_dirs=None, only_tracked_in_git=False, ignore_prefixes=('__', '.')):
     """Useful when working with input/output auto-detection"""
     ignored_dirs = ignored_dirs or set()
     ignore = ignore or set()
@@ -586,7 +586,7 @@ def discover_notebooks(ignore=None, ignored_dirs=None, only_tracked_in_git=False
     from typing import Dict
     groups: Dict[str, Group] = {}
 
-    for dirpath, _, files in walk('.'):
+    for dirpath, _, files in walk(root_path):
         dirs = dirpath.split(sep)[1:]
         if any(dir.startswith('.') or dir in ignored_dirs for dir in dirs):
             continue
